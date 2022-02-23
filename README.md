@@ -69,8 +69,8 @@ You can the run the application using the following:
 .\gradlew.bat bootRun
 ```
 
-The application should then be available at the URL: `http://localhost:8080`. If it fails to start make sure you have
-no other applications running on port 8080.
+The application should then be available at the URL: `http://localhost:8801`. If it fails to start make sure you have
+no other applications running on port 8801.
 
 
 Deploy Application
