@@ -1,0 +1,65 @@
+plugins {
+    id "org.springframework.boot" version "2.2.5.RELEASE"
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'java'
+    id 'maven-publish'
+}
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-actuator:2.2.6.RELEASE'
+    implementation 'org.springframework.boot:spring-boot-starter-web:2.2.6.RELEASE'
+    implementation 'org.springframework.boot:spring-boot-devtools:2.2.6.RELEASE'
+    implementation 'org.apache.logging.log4j:log4j-core:2.14.1'
+    implementation 'org.apache.logging.log4j:log4j-api:2.14.1'
+    implementation 'javax.servlet:jstl:1.2'
+    runtimeOnly 'mysql:mysql-connector-java'
+    runtimeOnly 'org.apache.tomcat.embed:tomcat-embed-jasper'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test:2.1.8.RELEASE'
+    testImplementation 'junit:junit:4.12'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.1'
+}
+
+configurations.all {
+    exclude module: 'spring-boot-starter-logging'
+}
+
+project.archivesBaseName = 'FortifyWebAppDemo'
+group = 'com.microfocus.app'
+version = ''
+sourceCompatibility = '11'
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from(components.java)
+        }
+    }
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+test {
+    useJUnitPlatform()
+    reports {
+        junitXml.enabled = true
+        html.enabled = false
+    }
+}
+
+bootRun {
+    //systemProperty "spring.profiles.active", "dev"
+}
+
+task writeClasspath() {
+    doLast() {
+        buildDir.mkdirs()
+        def files = configurations.compileClasspath.getFiles().sort()
+        new File(buildDir, "classpath.txt").text = files.collect { it.path }.join(';')
+        //files.forEach{ f -> print("$f.path;")}
+    }
+}
