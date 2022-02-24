@@ -1,8 +1,19 @@
 package com.microfocus.app;
 
+import java.util.UUID;
+
 public class Product {
-	public int Id;
-	public String Title;
+	public UUID Id;
+	public String Code;
+	public String Name;
+	public Integer Rating;
+	public String Summary;
 	public String Description;
-	public String Category;
+	public String Image;
+	public Float Price;
+	public Boolean OnSale;
+	public Float SalePrice;
+	public Boolean InStock;
+	public Integer TimeToStock;
+	public Boolean Available;
 }

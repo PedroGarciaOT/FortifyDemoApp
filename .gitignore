@@ -28,5 +28,9 @@ hs_err_pid*
 # Environment specific files
 .env
 
+# IntelliJ
+.idea
+build
+
 .fpr
 .pdf

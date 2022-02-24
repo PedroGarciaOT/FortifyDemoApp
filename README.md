@@ -54,23 +54,14 @@ There should be a number of issues including (but not limited to):
 Run Application (locally)
 -------------------------
 
-If you want to run the application locally you will need to have [MySQL](https://www.mysql.com/) installed and set a system
-environment called `MYSQLCONNSTR_defaultConnection` with a value similar to the following:
-
-```
-Database=products;Data Source=localhost;User Id=mysql;Password=mysql
-```
-
-Make sure the userid/password is valid for your local MySQL instance and that the database referred to is already created.
-
 You can the run the application using the following:
 
 ```
 .\gradlew.bat bootRun
 ```
 
-The application should then be available at the URL: `http://localhost:8080`. If it fails to start make sure you have
-no other applications running on port 8080.
+The application should then be available at the URL: `http://localhost:8088`. If it fails to start make sure you have
+no other applications running on port 8088.
 
 
 Deploy Application

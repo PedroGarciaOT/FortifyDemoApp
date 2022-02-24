@@ -6,14 +6,14 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
-public class ProductController
+public class DefaultController
 {
-    private static final Logger log = LogManager.getLogger(ProductController.class);
+    private static final Logger log = LogManager.getLogger(DefaultController.class);
 
     @GetMapping({"/", "/products"})
     public String showProductsPage()
     {
-        log.info("ProductController:showProductsPage");
-        return "products";
+        log.info("DefaultController:showProductsPage");
+        return "products/index";
     }
 }
