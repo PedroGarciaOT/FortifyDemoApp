@@ -1,6 +1,7 @@
-# Fortify Web App Demo
+# Fortify Injection Demo
 
-This is an example project for the demonstration of Fortify SAST and DAST vulnerability scanning 
+This is an example project for the demonstration of Fortify SAST and DAST vulnerability scanning. In particular
+this application has various injection vulnerabilities that can be found by Fortify
 
 To use this demo in full you will need the following software installed:
 
@@ -20,7 +21,7 @@ SSC_PASSWORD=admin
 # SSC Authentication Token (recommended to use CIToken)
 SSC_AUTH_TOKEN=XXXXX
 # Name of the application in SSC
-SSC_APP_NAME=FortifyWebAppDemo
+SSC_APP_NAME=FortifyInjectionDemo
 # Name of the application version in SSC
 SSC_APP_VER_NAME=main
 ```
@@ -44,7 +45,7 @@ An example results file (in PDF) is available [here](samples/FortifyWebAppDemo.p
 To view the full results yourself you can use:
 
 ```
-auditworkbench .\FortifyWebAppDemo.fpr
+auditworkbench .\FortifyInjectionDemo.fpr
 ```
 
 There should be a number of issues including (but not limited to):
