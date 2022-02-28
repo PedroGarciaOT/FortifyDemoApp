@@ -1,7 +1,7 @@
-<%@page import="com.microfocus.app.DbService" %>
-<%@page import="com.microfocus.app.Product" %>
+<%@page import="com.microfocus.app.service.DbService" %>
+<%@page import="com.microfocus.app.entity.Product" %>
 <%@page import="java.util.ArrayList" %>
-<%@ page import="com.microfocus.app.DbService" %>
+<%@ page import="com.microfocus.app.service.DbService" %>
 <%@page language="java" contentType="text/html; charset=ISO-8859-1" pageEncoding="ISO-8859-1" %>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
@@ -12,9 +12,9 @@
 	<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 	<title>Web App Demo</title>
-	<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
-	<link rel="stylesheet" type="text/css" href="css/fontawesome.all.css"/>
-	<link rel="stylesheet" type="text/css" href="css/icomoon/style.css"/>
+	<link rel="stylesheet" type="text/css" href="css/lib/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="css/lib/fontawesome.all.css"/>
+	<link rel="stylesheet" type="text/css" href="css/lib/icomoon/style.css"/>
 	<link rel="stylesheet" type="text/css" href="css/app.css">
 </head>
 
@@ -301,9 +301,18 @@
 			</div>
 		</footer>
 
-		<script type="text/javascript" src="js/jquery.min.js"></script>
-		<script type="text/javascript" src="js/bootstrap.bundle.min.js"></script>
+		<script type="text/javascript" src="js/lib/jquery.min.js"></script>
+		<script type="text/javascript" src="js/lib/bootstrap.bundle.min.js"></script>
+		<script type="text/javascript" src="js/SubscribeNewsletter.js"></script>
 		<script type="text/javascript" src="js/app.js"></script>
+
+		<script type="text/javascript">
+			(function ($) {
+				$(document).ready(function () {
+					$('#subscribe-newsletter').SubscribeNewsletter();
+				});
+			})(jQuery);
+		</script>
 
 	</div>
 

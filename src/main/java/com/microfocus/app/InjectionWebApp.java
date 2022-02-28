@@ -8,16 +8,16 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 
 @SpringBootApplication()
-public class WebApp extends SpringBootServletInitializer {
+public class InjectionWebApp extends SpringBootServletInitializer {
 
-    private static final Logger log = LogManager.getLogger(WebApp.class);
+    private static final Logger log = LogManager.getLogger(InjectionWebApp.class);
 
     @Override
     protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
-        return builder.sources(WebApp.class);
+        return builder.sources(InjectionWebApp.class);
     }
 
     public static void main(String[] args) {
-        SpringApplication.run(WebApp.class);
+        SpringApplication.run(InjectionWebApp.class);
     }
 }

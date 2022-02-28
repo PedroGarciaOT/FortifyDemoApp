@@ -1,4 +1,4 @@
-package com.microfocus.app;
+package com.microfocus.app.entity;
 
 import java.util.UUID;
 

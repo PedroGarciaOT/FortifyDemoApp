@@ -1,5 +1,6 @@
-package com.microfocus.app;
+package com.microfocus.app.service;
 
+import com.microfocus.app.entity.Product;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
