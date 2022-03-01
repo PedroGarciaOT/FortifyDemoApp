@@ -16,18 +16,28 @@
 # assistance with configuration, feel free to create a help ticket in the Fortify on Demand portal.                                            #
 ################################################################################################################################################
 
-name: Fortify on Demand Scan
+name: Build and Security Scan
 
 # TODO: Customize trigger events based on your DevSecOps processes and typical FoD SAST scan time
 on:
   workflow_dispatch:
   push:
-    branches: [ main ]
+    paths-ignore:
+      - .github/workflows/**
+      - 'bin/**'
+      - 'data/**'
+      - 'etc/**'
+      - 'media/**'
+      - 'Jenkinsfile'
+      - '.gitlab-ci.yml'
+      - 'README.md'
+      - 'LICENSE'
+    branches: [ master ]
   schedule:
-    - cron: '39 5 * * 0'
+    - cron: '38 20 * * 2'
 
 jobs:
-  FoD-SAST-Scan:
+  Build-And-Scan:
     # Use the appropriate runner for building your source code.
     # TODO: Use a Windows runner for .NET projects that use msbuild. Additional changes to RUN commands will be required to switch to Windows syntax.
     runs-on: ubuntu-latest
@@ -47,7 +57,7 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: 11
-
+          
       # Build and unit-test the application  
       - name: Gradle Build Action
         # You may pin to the exact commit or the version.
@@ -68,7 +78,7 @@ jobs:
       - name: Package Code + Dependencies
         run: scancentral package $PACKAGE_OPTS -o package.zip
         env:
-          PACKAGE_OPTS: "-bt gradle -bf build.gradle"
+          PACKAGE_OPTS: "-bt gradle"
 
       # Start Fortify on Demand SAST scan and wait until results complete. For more information on FoDUploader commands, see https://github.com/fod-dev/fod-uploader-java
       # TODO: Update ENV variables for your application and create the necessary GitHub Secrets.  Helpful hints:
@@ -92,7 +102,7 @@ jobs:
       - name: Export results to GitHub-optimized SARIF
         uses: fortify/gha-export-vulnerabilities@fcb374411cff9809028c911dabb8b57dbdae623b
         with:
-          fod_base_url: "https://ams.fortify.com/"
+          fod_base_url: "https://emea.fortify.com/"
           fod_tenant: ${{ secrets.FOD_TENANT }}
           fod_user: ${{ secrets.FOD_USER }}
           fod_password: ${{ secrets.FOD_PAT }}
