@@ -1,7 +1,6 @@
-# Fortify Injection Demo
+# Fortify Demo App
 
-This is an example project for the demonstration of Fortify SAST and DAST vulnerability scanning. In particular
-this application has various injection vulnerabilities that can be found by Fortify
+This is a small Java/Spring web application that can be used for the demonstration of Fortify SAST and DAST. 
 
 To use this demo in full you will need the following software installed:
 
@@ -40,12 +39,12 @@ powershell .\bin\fortify-sca.ps1
 
 This will scan the applications source code.
 
-An example results file (in PDF) is available [here](samples/FortifyWebAppDemo.pdf).
+An example results file (in PDF) is available [here](samples/FortifyDemoApp.pdf).
 
 To view the full results yourself you can use:
 
 ```
-auditworkbench .\FortifyInjectionDemo.fpr
+auditworkbench .\FortifyDemoApp.fpr
 ```
 
 There should be a number of issues including (but not limited to):
