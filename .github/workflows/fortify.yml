@@ -53,7 +53,7 @@ jobs:
         uses: gradle/gradle-build-action@v2
 
       - name: Execute Gradle build
-        run: gradle build
+        run: gradlew build
 
       # Prepare source+dependencies for upload. The default example is for a Maven project that uses pom.xml.
       # TODO: Update PACKAGE_OPTS based on the ScanCentral Client documentation for your project's included tech stack(s). Helpful hints:
