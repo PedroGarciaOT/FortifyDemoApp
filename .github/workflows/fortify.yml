@@ -29,7 +29,6 @@ on:
       - 'etc/**'
       - 'media/**'
       - 'Jenkinsfile'
-      - '.gitlab-ci.yml'
       - 'README.md'
       - 'LICENSE'
     branches: [ master ]
