@@ -68,3 +68,7 @@ task writeClasspath() {
         //files.forEach{ f -> print("$f.path;")}
     }
 }
+
+tasks.named('wrapper') {
+    distributionType = Wrapper.DistributionType.ALL
+}

@@ -53,17 +53,15 @@ jobs:
       # Java is required to run the various Fortify utilities.
       # When scanning a Java application, please use the appropriate Java version for building your application.
       - name: Setup Java
-        uses: actions/setup-java@v1
+      - uses: actions/setup-java@v2
         with:
-          java-version: 11
+          distribution: 'zulu'
+          java-version: '11'
+          cache: 'gradle'
           
       # Build and unit-test the application  
-      - name: Gradle Build Action
-        # You may pin to the exact commit or the version.
-        # uses: gradle/gradle-build-action@996094e8e808208e5738e8413b3f55d24d1c1eb7
-        uses: gradle/gradle-build-action@v2.0.1
-        with:
-          arguments: build
+      - name: Build with Gradle
+        run: gradle build
 
       # Prepare source+dependencies for upload. The default example is for a Maven project that uses pom.xml.
       # TODO: Update PACKAGE_OPTS based on the ScanCentral Client documentation for your project's included tech stack(s). Helpful hints:
