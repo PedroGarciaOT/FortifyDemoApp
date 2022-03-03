@@ -23,6 +23,7 @@ dependencies {
 }
 
 configurations.all {
+    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
     exclude module: 'spring-boot-starter-logging'
 }
 
