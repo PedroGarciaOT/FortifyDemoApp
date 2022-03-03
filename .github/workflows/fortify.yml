@@ -20,7 +20,7 @@ name: Build and Security Scan
 
 # TODO: Customize trigger events based on your DevSecOps processes and typical FoD SAST scan time
 on:
-  workflow_dispatch:
+  # Triggers the workflow on push or pull request events but only for the master branch
   push:
     paths-ignore:
       - .github/workflows/**
@@ -29,11 +29,22 @@ on:
       - 'etc/**'
       - 'media/**'
       - 'Jenkinsfile'
+      - '.gitlab-ci.yml'
+      - 'azure-pipelines.yml'
       - 'README.md'
       - 'LICENSE'
-    branches: [ master ]
-  schedule:
-    - cron: '38 20 * * 2'
+    branches:
+      - '**'        # matches every branch
+  pull_request:
+    branches: [ main ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+    inputs:
+      debug:
+        description: 'Debug Pipeline execution - upload logs etc'
+        required: false
+        default: 'false'
 
 jobs:
   Build-And-Scan:
@@ -57,7 +68,7 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '11'
-          cache: 'gradle'
+          #cache: 'gradle'
           
       # Build and unit-test the application  
       - name: Build with Gradle
@@ -114,14 +125,14 @@ jobs:
       # Archive ScanCentral Client logs on failure
       - name: Save ScanCentral Logs
         uses: actions/upload-artifact@v2
-        #if: failure()
+        if: ${{ github.event.inputs.debug == 'true }}
         with:
           name: scancentral-logs
           path: ~/.fortify/scancentral*/log
 
       - name: Save ScanCentral Package
         uses: actions/upload-artifact@v2
-        #if: failure()
+        if: ${{ github.event.inputs.debug == 'true }}
         with:
           name: scancentral-package
           path: package.zip

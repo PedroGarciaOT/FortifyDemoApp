@@ -20,7 +20,7 @@ public class FsService {
 	public FsService() {
 	}
 
-	public static void writeUser(String user, String email) throws IOException {
+	public static void writeUser(Integer id, String user, String email) throws IOException {
 		JsonFactory jsonFactory = new JsonFactory();
 
 		File dataFile = new File(getFilePath(USER_INFO_FILE));
@@ -33,6 +33,9 @@ public class FsService {
 		JsonGenerator jGenerator = jsonFactory.createGenerator(dataFile, JsonEncoding.UTF8);
 
 		jGenerator.writeStartObject();
+
+		jGenerator.writeFieldName("id");
+		jGenerator.writeRawValue("\"" + id.toString() + "\"");
 
 		jGenerator.writeFieldName("name");
 		jGenerator.writeRawValue("\"" + user + "\"");

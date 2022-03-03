@@ -2,11 +2,20 @@ package com.microfocus.app.entity;
 
 public class SubscribeUserRequest {
 
+    private Integer id;
     private String firstName;
     private String lastName;
     private String email;
 
     public SubscribeUserRequest() {
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public String getFirstName() {
@@ -36,7 +45,8 @@ public class SubscribeUserRequest {
     @Override
     public String toString() {
         return "SubscribeUserRequest{" +
-                "firstName='" + firstName + '\'' +
+                "id='" + id + '\'' +
+                ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
                 ", email=" + email +
                 '}';

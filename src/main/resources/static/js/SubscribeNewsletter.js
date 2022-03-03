@@ -1,4 +1,7 @@
 $.fn.SubscribeNewsletter = function (options) {
+    const MIN_SUBSCRIBER_ID = 1000000
+    const MAX_SUBSCRIBER_ID = 9999999;
+
     return this.each(function (index, el) {
 
         var settings = $.extend({
@@ -33,8 +36,10 @@ $.fn.SubscribeNewsletter = function (options) {
     }
 
     async function _saveEmail(email) {
+        let subscriberId = Math.random() * (MAX_SUBSCRIBER_ID - MIN_SUBSCRIBER_ID) + MIN_SUBSCRIBER_ID;
         let data = JSON.stringify(
             {
+                id: subscriberId,
                 firstName: "",
                 lastName: "",
                 email: email

@@ -29,7 +29,7 @@ public class DefaultController
     public ResponseEntity<String> subscribeUser(@RequestBody SubscribeUserRequest newUser) {
         log.debug("API::Subscribing a user to the newsletter: " + newUser.toString());
         try {
-            FsService.writeUser(newUser.getFirstName()+ " " + newUser.getLastName(), newUser.getEmail());
+            FsService.writeUser(newUser.getId(), newUser.getFirstName()+ " " + newUser.getLastName(), newUser.getEmail());
         } catch (IOException e) {
             e.printStackTrace();
         }
