@@ -12,13 +12,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator:2.1.8.RELEASE'
     implementation 'org.springframework.boot:spring-boot-starter-web:2.1.8.RELEASE'
     implementation 'org.springframework.boot:spring-boot-devtools:2.1.8.RELEASE'
-    implementation 'org.springframework.boot:spring-boot-starter-log4j2:2.1.8.RELEASE'
-    implementation 'org.apache.logging.log4j:log4j-api:2.11.2'
-    modules {
-        module("org.springframework.boot:spring-boot-starter-logging") {
-            replacedBy("org.springframework.boot:spring-boot-starter-log4j2", "Use Log4j2 instead of Logback")
-        }
-    }
+    implementation 'org.apache.logging.log4j:log4j-core:2.14.1'
+    implementation 'org.apache.logging.log4j:log4j-api:2.14.1'
     implementation 'javax.servlet:jstl:1.2'
     implementation 'com.h2database:h2:1.4.197'
     runtimeOnly 'org.apache.tomcat.embed:tomcat-embed-jasper'
@@ -31,7 +26,7 @@ configurations.all {
     exclude module: 'spring-boot-starter-logging'
 }
 
-project.archivesBaseName = 'FortifyWebAppDemo'
+project.archivesBaseName = 'FortifyDemoApp'
 group = 'com.microfocus.app'
 version = ''
 sourceCompatibility = '11'
