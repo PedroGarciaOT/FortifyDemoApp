@@ -125,14 +125,14 @@ jobs:
       # Archive ScanCentral Client logs on failure
       - name: Save ScanCentral Logs
         uses: actions/upload-artifact@v2
-        if: ${{ github.event.inputs.debug == 'true }}
+        if: ${{ github.event.inputs.debug == 'true' }}
         with:
           name: scancentral-logs
           path: ~/.fortify/scancentral*/log
 
       - name: Save ScanCentral Package
         uses: actions/upload-artifact@v2
-        if: ${{ github.event.inputs.debug == 'true }}
+        if: ${{ github.event.inputs.debug == 'true' }}
         with:
           name: scancentral-package
           path: package.zip
