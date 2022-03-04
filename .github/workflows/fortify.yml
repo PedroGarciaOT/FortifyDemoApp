@@ -70,11 +70,13 @@ jobs:
           distribution: 'zulu'
           java-version: '11'
           #cache: 'gradle'
-          
+          cache: 'maven'
+        run: mvn test
+
       # Build and unit-test the application
       # Note: should be "./gradlew build" but we will just use "clean" to boostrap/check gradle wrapper
-      - name: Build with Gradle
-        run: ./gradlew clean
+      #- name: Build with Gradle
+      #  run: ./gradlew clean
 
       # Prepare source+dependencies for upload. The default example is for a Maven project that uses pom.xml.
       # TODO: Update PACKAGE_OPTS based on the ScanCentral Client documentation for your project's included tech stack(s). Helpful hints:
@@ -88,7 +90,7 @@ jobs:
       - name: Package Code + Dependencies
         run: scancentral package $PACKAGE_OPTS -o $PACKAGE_FILE
         env:
-            PACKAGE_OPTS: "-bt gradle -bf build.gradle"
+            PACKAGE_OPTS: "-bt mvn -bf pom.xml"
             PACKAGE_FILE: "package.zip"
             
       # Start Fortify on Demand SAST scan and wait until results complete. For more information on FoDUploader commands, see https://github.com/fod-dev/fod-uploader-java
