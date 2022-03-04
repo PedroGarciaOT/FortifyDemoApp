@@ -42,16 +42,16 @@ on:
   workflow_dispatch:
     inputs:
       debug:
-        description: 'Debug Pipeline execution - upload logs etc'
+        description: 'Debug Pipeline execution'
         required: false
-        default: 'false'
+        default: 'true'
 
 jobs:
   Build-And-Scan:
     # Use the appropriate runner for building your source code.
     # TODO: Use a Windows runner for .NET projects that use msbuild. Additional changes to RUN commands will be required to switch to Windows syntax.
-    #runs-on: ubuntu-latest
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
+    #runs-on: self-hosted
     permissions:
       actions: read
       contents: read
@@ -86,9 +86,10 @@ jobs:
       - name: Download Fortify ScanCentral Client
         uses: fortify/gha-setup-scancentral-client@v2.1.0
       - name: Package Code + Dependencies
-        run: scancentral package -bt gradle -bf build.gradle -o package.zip
+        run: scancentral package $PACKAGE_OPTS -o $PACKAGE_FILE
         env:
-            PACKAGE_OPTS: "-bt gradle"
+            PACKAGE_OPTS: "-bt gradle -bf build.gradle"
+            PACKAGE_FILE: "package.zip"
             
       # Start Fortify on Demand SAST scan and wait until results complete. For more information on FoDUploader commands, see https://github.com/fod-dev/fod-uploader-java
       # TODO: Update ENV variables for your application and create the necessary GitHub Secrets.  Helpful hints:
@@ -97,7 +98,7 @@ jobs:
       - name: Download Fortify on Demand Universal CI Tool
         uses: fortify/gha-setup-fod-uploader@v1.1.1
       - name: Perform SAST Scan
-        run: java -jar $FOD_UPLOAD_JAR -z package.zip -aurl $FOD_API_URL -purl $FOD_URL -rid "$FOD_RELEASE_ID" -tc "$FOD_TENANT" -uc "$FOD_USER" "$FOD_PAT" $FOD_UPLOADER_OPTS -n "$FOD_UPLOADER_NOTES"
+        run: java -jar $FOD_UPLOAD_JAR -z $PACKAGE_FILE -aurl $FOD_API_URL -purl $FOD_URL -rid "$FOD_RELEASE_ID" -tc "$FOD_TENANT" -uc "$FOD_USER" "$FOD_PAT" $FOD_UPLOADER_OPTS -n "$FOD_UPLOADER_NOTES"
         env:
           FOD_URL: "https://emea.fortify.com/"
           FOD_API_URL: "https://api.emea.fortify.com/"
@@ -107,10 +108,11 @@ jobs:
           FOD_RELEASE_ID: ${{ secrets.FOD_RELEASE_ID }}
           FOD_UPLOADER_OPTS: "-ep 2 -pp 0 -I 1 -apf"
           FOD_UPLOADER_NOTES: 'Triggered by GitHub Actions (${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})'
+          PACKAGE_FILE: "package.zip"
 
       # Once scan completes, pull SAST issues from Fortify on Demand and generate SARIF output.
       - name: Export results to GitHub-optimized SARIF
-        uses: fortify/gha-export-vulnerabilities@fcb374411cff9809028c911dabb8b57dbdae623b
+        uses: fortify/gha-export-vulnerabilities@v1.5.4
         with:
           fod_base_url: "https://emea.fortify.com/"
           fod_tenant: ${{ secrets.FOD_TENANT }}
