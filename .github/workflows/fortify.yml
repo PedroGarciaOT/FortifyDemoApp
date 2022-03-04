@@ -71,7 +71,7 @@ jobs:
           java-version: '11'
           #cache: 'gradle'
           cache: 'maven'
-        run: mvn test
+      - run: mvn test
 
       # Build and unit-test the application
       # Note: should be "./gradlew build" but we will just use "clean" to boostrap/check gradle wrapper
