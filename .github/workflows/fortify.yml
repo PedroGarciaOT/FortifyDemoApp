@@ -86,10 +86,11 @@ jobs:
       - name: Download Fortify ScanCentral Client
         uses: fortify/gha-setup-scancentral-client@v2.1.0
       - name: Package Code + Dependencies
-        run: scancentral package $PACKAGE_OPTS -o package.zip
+        run: scancentral package $PACKAGE_OPTS -o $PACKAGE_FILE
         env:
-          PACKAGE_OPTS: "-bt gradle -bf build.gradle -bc build"
-
+            PACKAGE_FILE: "package.zip"
+            PACKAGE_OPTS: "-bt gradle"
+            
       # Start Fortify on Demand SAST scan and wait until results complete. For more information on FoDUploader commands, see https://github.com/fod-dev/fod-uploader-java
       # TODO: Update ENV variables for your application and create the necessary GitHub Secrets.  Helpful hints:
       #   Credentials and release ID should be obtained from your FoD tenant (either Personal Access Token or API Key can be used).
