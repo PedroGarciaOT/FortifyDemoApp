@@ -1,22 +1,13 @@
 package com.microfocus.app;
 
+import org.junit.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.TestPropertySource;
 
 @SpringBootTest
-@TestPropertySource(
-		properties = {
-				"app.operation=test"
-		}
-)
-class JavaWebAppTests extends BaseTest {
+public class WebAppDemoTests extends BaseTest {
 
-	/*
 	@Test
-	void contextLoads() {
-	}
-
-	@Test public void Test1() {
+	public void Test1() {
 		run();
 	}
 
@@ -35,6 +26,5 @@ class JavaWebAppTests extends BaseTest {
 	@Test public void Test5() {
 		run();
 	}
-	*/
 
 }

@@ -5,22 +5,24 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
 
-public class FsService {
+@Service
+public class FileSystemService {
 
-	private static final Logger log = LogManager.getLogger(FsService.class);
+	private static final Logger log = LogManager.getLogger(FileSystemService.class);
 
 	public static final String USER_INFO_FILE = "user_info.json";
 	public static final String NEWSLETTER_USER_FILE = "newsletter_registration.json";
 	public static final String DEFAULT_ROLE = "guest";
 
-	public FsService() {
+	public FileSystemService() {
 	}
 
-	public static void writeUser(Integer id, String user, String email) throws IOException {
+	public void writeUser(Integer id, String user, String email) throws IOException {
 		JsonFactory jsonFactory = new JsonFactory();
 
 		File dataFile = new File(getFilePath(USER_INFO_FILE));
@@ -51,7 +53,7 @@ public class FsService {
 		jGenerator.close();
 	}
 
-	private static String getFilePath(String relativePath) {
+	private String getFilePath(String relativePath) {
 		return System.getProperty("user.home") + File.separatorChar + relativePath;
 	}
 }

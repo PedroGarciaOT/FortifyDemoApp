@@ -1,11 +1,16 @@
 # Fortify Demo App
 
-This is a small Java/Spring web application that can be used for the demonstration of Fortify SAST and DAST. 
+This is a sample Java/Spring web application that can be used for the demonstration of Fortify SAST, DAST and SCA.
+It is basically a cutdown "search" page from a larger sample application [IWAPharmacyDirect](https://github.com/fortify-presales/IWAPharmacyDirect) and
+is kept deliberately small in size to reduce scan times for demos.
 
 To use this demo in full you will need the following software installed:
 
-* [Fortify SCA and Tools](https://www.microfocus.com/en-us/cyberres/application-security/static-code-analyzer)
-* [Fortify WebInspect](https://www.microfocus.com/en-us/cyberres/application-security/webinspect)  
+* [Fortify Static Code Analyzer and Tools](https://www.microfocus.com/en-us/cyberres/application-security/static-code-analyzer)
+* [Fortify Software Security Center](https://www.microfocus.com/en-us/cyberres/application-security/software-security-center)  
+* [Fortify WebInspect](https://www.microfocus.com/en-us/cyberres/application-security/webinspect)
+* *optional* [Fortify Software Composition Analysis](https://www.microfocus.com/en-us/cyberres/application-security/software-composition-analysis)
+* *optional* [Fortify ScanCentral SAST/DAST]()
 
 Setup
 -----
@@ -20,7 +25,7 @@ SSC_PASSWORD=admin
 # SSC Authentication Token (recommended to use CIToken)
 SSC_AUTH_TOKEN=XXXXX
 # Name of the application in SSC
-SSC_APP_NAME=FortifyInjectionDemo
+SSC_APP_NAME=FortifyDemoApp
 # Name of the application version in SSC
 SSC_APP_VER_NAME=main
 ```
@@ -49,7 +54,11 @@ auditworkbench .\FortifyDemoApp.fpr
 
 There should be a number of issues including (but not limited to):
 
-- TBD
+- SQL Injection
+- JSON Injection
+- Insecure Randomness
+- Empty Password in Configuration File
+- Path Manipulation
 
 Run Application (locally)
 -------------------------
@@ -57,17 +66,12 @@ Run Application (locally)
 You can the run the application using the following:
 
 ```
-.\gradlew.bat bootRun
+.\gradlew bootRun
 ```
 
 The application should then be available at the URL: `http://localhost:8088`. If it fails to start make sure you have
 no other applications running on port 8088.
 
-
-Deploy Application
-------------------
-
-TBD
 
 ---
 

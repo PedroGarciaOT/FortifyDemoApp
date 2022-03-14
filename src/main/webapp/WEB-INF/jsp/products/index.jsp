@@ -1,8 +1,7 @@
-<%@page import="com.microfocus.app.service.DbService" %>
 <%@page import="com.microfocus.app.entity.Product" %>
 <%@page import="java.util.ArrayList" %>
-<%@ page import="com.microfocus.app.service.DbService" %>
 <%@page language="java" contentType="text/html; charset=ISO-8859-1" pageEncoding="ISO-8859-1" %>
+<%@taglib prefix = "c" uri = "http://java.sun.com/jsp/jstl/core" %>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
@@ -20,10 +19,8 @@
 
 <body>
 	<%
-		DbService da=new DbService();
 		String keywords = request.getParameter("keywords");
-		if (keywords == null) keywords = "";
-		ArrayList<Product> products = da.getProducts(keywords);
+		if (keywords == null || keywords.isEmpty()) keywords = "";
 	%>
 
 	<div id="app" class="d-flex flex-column min-vh-100 site-wrap">
@@ -181,22 +178,22 @@
 						</tr>
 						</thead>
 						<tbody>
-						<% for (int i=0; i< products.size(); i++) { Product p=products.get(i); %>
+						<c:forEach items="${products}" var="p">
 						<tr>
 							<td>
-								<a href="#"><%= p.Code %></a>
+								<a href="#"><c:out value="${p.code}" /></a>
 							</td>
 							<td>
-								<%= p.Name %>
+								<c:out value="${p.name}" />
 							</td>
 							<td>
-								<%= p.Summary %>
+								<c:out value="${p.summary}" />
 							</td>
 							<td>
-								&#164;<%= p.Price %>
+								&#164;<c:out value="${p.price}" />
 							</td>
 						</tr>
-						<% } %>
+						</c:forEach>
 						</tbody>
 					</table>
 
@@ -204,7 +201,7 @@
 						<div class="col-md-12">
 							<% if (keywords.length() > 0) { %>
 							<p>
-								Searching for "<%=keywords %>" - found <em><%= products.size() %></em> result(s).
+								Searching for "<%=keywords %>" - found <em><c:out value="${products.size()}"/></em> result(s).
 							</p>
 							<% } %>
 						</div>
