@@ -46,9 +46,9 @@ Write-Host Running scan...
 Write-Host Generating PDF report...
 & ReportGenerator '-Dcom.fortify.sca.ProjectRoot=.fortify' -user "Demo User" -format pdf -f "$($AppName).pdf" -source "$($AppName).fpr"
 
-#if (![string]::IsNullOrEmpty($SSCUrl)) {
-#    Write-Host Uploading results to SSC...
-#    & fortifyclient uploadFPR -file "$($AppName).fpr" -url $SSCUrl -authtoken $SSCAuthToken -application $AppName -applicationVersion $AppVersion
-#}
+if (![string]::IsNullOrEmpty($SSCUrl)) {
+    Write-Host Uploading results to SSC...
+    & fortifyclient uploadFPR -file "$($AppName).fpr" -url $SSCUrl -authtoken $SSCAuthToken -application $AppName -applicationVersion $AppVersion
+}
 
 Write-Host Done.

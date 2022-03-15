@@ -1,5 +1,5 @@
 #
-# Example script to perform Fortify SCA static analysis
+# Example script to perform Fortify ScanCentral SAST scan
 #
 
 # Import some supporting functions
@@ -28,11 +28,11 @@ if ([string]::IsNullOrEmpty($AppVersion)) { throw "Application Version has not b
 
 # Upload and run the scan
 
-Write-Host Invoking ScanCentral...
+Write-Host Invoking ScanCentral SAST ...
 Write-Host "scancentral -url $ScanCentralCtrlUrl -ssctoken $SSCAuthToken start -upload -uptoken $ScanCentralCtrlToken -b $AppName --application $AppName --application-version $AppVersion -email $ScanCentralEmail -bt mvn -bf pom.xml -scan"
-& scancentral -url $ScanCentralCtrlUrl -ssctoken $SSCAuthToken start -bt gradle -bf build.gradle -upload `
+& scancentral -url $ScanCentralCtrlUrl -ssctoken $SSCAuthToken start -bt mvn -bf pom.xml -upload `
     -uptoken $ScanCentralCtrlToken -b $AppName `
-    --application $AppName --application-version $AppVersion  `
+    -application $AppName -version $AppVersion  `
     -email $ScanCentralEmail
 
 Write-Host

@@ -18,16 +18,33 @@ Setup
 First create a file called `.env` in the project root directory with content similar to the following:
 
 ```
+# The applications URL
+APP_URL=http://localhost:8088
 # The URL of Software Security Center
-SSC_URL=http://ftfydemo:8080/ssc
+SSC_URL=http://fortify.xx.xx
 SSC_USERNAME=admin
-SSC_PASSWORD=admin
+SSC_PASSWORD=XXX
 # SSC Authentication Token (recommended to use CIToken)
 SSC_AUTH_TOKEN=XXXXX
 # Name of the application in SSC
 SSC_APP_NAME=FortifyDemoApp
 # Name of the application version in SSC
 SSC_APP_VER_NAME=main
+SCANCENTRAL_CTRL_URL=http://fortify.xx.xx/scancentral-ctrl
+SCANCENTRAL_CTRL_TOKEN=XXXXX
+SCANCENTRAL_POOL_ID=00000000-0000-0000-0000-000000000002
+SCANCENTRAL_EMAIL=xxx.xxx@fortify.com
+SCANCENTRAL_DAST_API=http://fortify.xx.xx:64814
+SCANCENTRAL_DAST_CICD_TOKEN=XXXXX
+# Nexus IQ Lifecycle
+NEXUS_IQ_URL=http://fortify.xx.xx:8070/
+NEXUS_IQ_AUTH=XXX:YYY
+NEXUS_IQ_APP_ID=FortifyDemoApp
+# Fortify on Demand
+FOD_API_URL=https://api.emea.fortify.com
+FOD_API_KEY=XXX
+FOD_API_SECRET=XXX
+
 ```
 
 If you want to upload the results to Fortify Software Security Center, make sure you set
@@ -35,6 +52,8 @@ appropriate values for `SSC_URL` and `SSC_AUTH_TOKEN`.
 
 Security Scan
 -------------
+
+**Fortify Static Code Analyzer:**
 
 To run a Fortify Static Code Analyzer scan you can use the included script `fortify-sca.ps1` as follows:
 
@@ -60,6 +79,29 @@ There should be a number of issues including (but not limited to):
 - Empty Password in Configuration File
 - Path Manipulation
 
+**Fortify ScanCentral SAST:**
+
+To run a Fortify ScanCentral SAST scan you can use the included script `fortify-scancentral-sast.ps1` as follows:
+
+```
+powershell .\bin\fortify-scancentral-sast.ps1
+```
+
+** Fortify Software Composition Analysis**
+
+To run a Fortify Software Composition Analysis scan you can use the included script `fortify-sourceandlibscanner.ps1`
+
+```
+powershell .\bin\fortify-sourceandlibscanner.ps1
+```
+
+**Fortify ScanCentral DAST:**
+
+To run a Fortify ScanCentral DAST scan you can use the included script `fortify-scancentral-dast.ps1` as follows:
+
+```
+powershell .\bin\fortify-scancentral-dast.ps1
+```
 Run Application (locally)
 -------------------------
 

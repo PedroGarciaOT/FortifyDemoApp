@@ -1,7 +1,8 @@
 <%@page import="com.microfocus.app.entity.Product" %>
 <%@page import="java.util.ArrayList" %>
 <%@page language="java" contentType="text/html; charset=ISO-8859-1" pageEncoding="ISO-8859-1" %>
-<%@taglib prefix = "c" uri = "http://java.sun.com/jsp/jstl/core" %>
+<%@taglib prefix="c" uri = "http://java.sun.com/jsp/jstl/core" %>
+<%@taglib prefix="fn" uri = "http://java.sun.com/jsp/jstl/functions" %>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
@@ -10,7 +11,7 @@
 	<meta charset="utf-8"/>
 	<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-	<title>Web App Demo</title>
+	<title>Fortify Demo App</title>
 	<link rel="stylesheet" type="text/css" href="css/lib/bootstrap.min.css">
 	<link rel="stylesheet" type="text/css" href="css/lib/fontawesome.all.css"/>
 	<link rel="stylesheet" type="text/css" href="css/lib/icomoon/style.css"/>
@@ -171,6 +172,7 @@
 					<table class="table table-hover table-sm table-striped">
 						<thead>
 						<tr>
+							<th></th>
 							<th>Code</th>
 							<th>Name</th>
 							<th>Summary</th>
@@ -179,20 +181,25 @@
 						</thead>
 						<tbody>
 						<c:forEach items="${products}" var="p">
-						<tr>
-							<td>
-								<a href="#"><c:out value="${p.code}" /></a>
-							</td>
-							<td>
-								<c:out value="${p.name}" />
-							</td>
-							<td>
-								<c:out value="${p.summary}" />
-							</td>
-							<td>
-								&#164;<c:out value="${p.price}" />
-							</td>
-						</tr>
+							<c:set var="sumsubstr" value="${fn:substring(p.summary, 0, 40)}" />
+							<tr>
+								<td>
+									<img src="/img/products/<c:url value="${p.image}"/>" alt="image"
+										 width="100" height="100" class="img-fluid">
+								</td>
+								<td>
+									<a href="#"><c:out value="${p.code}" /></a>
+								</td>
+								<td>
+									<c:out value="${p.name}" />
+								</td>
+								<td>
+									<c:out value="${sumsubstr}" />
+								</td>
+								<td>
+									&#164;<c:out value="${p.price}" />
+								</td>
+							</tr>
 						</c:forEach>
 						</tbody>
 					</table>
