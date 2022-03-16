@@ -12,10 +12,10 @@
 	<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 	<title>Fortify Demo App</title>
-	<link rel="stylesheet" type="text/css" href="css/lib/bootstrap.min.css">
-	<link rel="stylesheet" type="text/css" href="css/lib/fontawesome.all.css"/>
-	<link rel="stylesheet" type="text/css" href="css/lib/icomoon/style.css"/>
-	<link rel="stylesheet" type="text/css" href="css/app.css">
+	<link rel="stylesheet" type="text/css" href="<c:url value="/css/lib/bootstrap.min.css"/>">
+	<link rel="stylesheet" type="text/css" href="<c:url value="/css/lib/fontawesome.all.css"/>"/>
+	<link rel="stylesheet" type="text/css" href="<c:url value="/css/lib/icomoon/style.css"/>"/>
+	<link rel="stylesheet" type="text/css" href="<c:url value="/css/app.css"/>">
 </head>
 
 <body>
@@ -33,7 +33,7 @@
 					<div class="logo">
 						<div class="site-logo">
 							<a class="navbar-brand js-logo-clone" href="#">
-								<img src="/img/logo.png" alt="IWA Pharmacy Direct">
+								<img src="<c:url value="/img/logo.png"/>" alt="IWA Pharmacy Direct">
 							</a>
 						</div>
 					</div>
@@ -184,7 +184,7 @@
 							<c:set var="sumsubstr" value="${fn:substring(p.summary, 0, 40)}" />
 							<tr>
 								<td>
-									<img src="/img/products/<c:url value="${p.image}"/>" alt="image"
+									<img src="<c:url value="/img/products/${p.image}"/>" alt="image"
 										 width="100" height="100" class="img-fluid">
 								</td>
 								<td>
@@ -227,7 +227,7 @@
 					<h4>IWA Pharmacy Direct</h4>
 					<p>IWA (Insecure Web App) Pharmacy Direct is a deliberately insecure web application for use in
 						<a href="https://www.microfocus.com/en-us/cyberres/application-security">Fortify Application Security</a> demonstrations.</p>
-					<p>© <a href="https://www.microfocus.com/">Micro Focus</a> 2021. All Rights Reserved | Template by
+					<p>© <a href="https://www.microfocus.com/">Micro Focus</a> 2022. All Rights Reserved | Template by
 						<a href="https://colorlib.com" target="_blank" class="text-info">Colorlib</a></p>
 				</div>
 				<div class="col-md-4 footer-nav animated fadeInUp">
@@ -305,10 +305,10 @@
 			</div>
 		</footer>
 
-		<script type="text/javascript" src="js/lib/jquery.min.js"></script>
-		<script type="text/javascript" src="js/lib/bootstrap.bundle.min.js"></script>
-		<script type="text/javascript" src="js/SubscribeNewsletter.js"></script>
-		<script type="text/javascript" src="js/app.js"></script>
+		<script type="text/javascript" src="<c:url value="/js/lib/jquery.min.js"/>"</script>
+		<script type="text/javascript" src="<c:url value="/js/lib/bootstrap.bundle.min.js"/>"></script>
+		<script type="text/javascript" src="<c:url value="/js/SubscribeNewsletter.js"/>"></script>
+		<script type="text/javascript" src="<c:url value="/js/app.js"/>"></script>
 
 		<script type="text/javascript">
 			(function ($) {

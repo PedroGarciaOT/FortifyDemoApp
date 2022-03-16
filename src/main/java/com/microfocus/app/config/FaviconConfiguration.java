@@ -1,6 +1,6 @@
 package com.microfocus.app.config;
 
-import com.microfocus.app.WebAppDemo;
+import com.microfocus.app.FortifyDemoApp;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,7 +17,7 @@ import java.util.Collections;
 @Configuration
 public class FaviconConfiguration {
 
-    private static final Logger log = LogManager.getLogger(WebAppDemo.class);
+    private static final Logger log = LogManager.getLogger(FortifyDemoApp.class);
 
     @Value("${server.servlet.context-path}")
     private String contextPath;

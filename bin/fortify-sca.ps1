@@ -33,7 +33,7 @@ Write-Host Running translation...
 & sourceanalyzer '-Dcom.fortify.sca.ProjectRoot=.fortify' $ScanSwitches -b "$AppName" `
     -jdk 1.8 -java-build-dir "build/classes" -cp $ClassPath -verbose `
     -exclude ".\src\main\resources\static\js\lib" -exclude ".\src\main\resources\static\css\lib"`
-    "./src/**/*" "./build.gradle"
+    "./src/**/*" "./build.gradle" "./azuredeploy.json" "./Dockerfile"
 
 Write-Host Running scan...
 & sourceanalyzer '-Dcom.fortify.sca.ProjectRoot=.fortify' $ScanSwitches -b "$AppName" `

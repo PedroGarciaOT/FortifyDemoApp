@@ -1,7 +1,9 @@
 plugins {
     id 'java'
+    id 'war'
     id 'maven-publish'
     id "org.springframework.boot" version "2.1.8.RELEASE"
+    id "com.microsoft.azure.azurewebapp" version "1.2.0"
 }
 
 repositories {
@@ -12,22 +14,23 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-actuator:2.1.8.RELEASE'
-    implementation 'org.springframework.boot:spring-boot-starter-web:2.1.8.RELEASE'
-    implementation 'org.springframework.boot:spring-boot-starter-data-jdbc:2.1.8.RELEASE'
-    implementation 'org.springframework.boot:spring-boot-starter-log4j2'
-    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
-    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+    def springVersion = "2.1.8.RELEASE"
+    implementation "org.springframework.boot:spring-boot-starter-actuator:$springVersion"
+    implementation "org.springframework.boot:spring-boot-starter-web:$springVersion"
+    implementation "org.springframework.boot:spring-boot-starter-data-jdbc:$springVersion"
+    implementation "org.springframework.boot:spring-boot-starter-log4j2:$springVersion"
+    implementation "org.springframework.boot:spring-boot-starter-jdbc:$springVersion"
     modules {
         module("org.springframework.boot:spring-boot-starter-logging") {
             replacedBy("org.springframework.boot:spring-boot-starter-log4j2", "Use Log4j2 instead of Logback")
         }
     }
-    implementation 'org.springframework.boot:spring-boot-devtools:2.1.8.RELEASE'
+    implementation "org.springframework.boot:spring-boot-devtools:$springVersion"
+    implementation "org.springframework.boot:spring-boot-starter-tomcat:$springVersion"
+    implementation "org.apache.tomcat.embed:tomcat-embed-jasper"
     implementation 'javax.servlet:jstl:1.2'
     implementation 'com.h2database:h2:1.4.197'
-    runtimeOnly 'org.apache.tomcat.embed:tomcat-embed-jasper'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test:2.1.8.RELEASE'
+    testImplementation "org.springframework.boot:spring-boot-starter-test:$springVersion"
     testImplementation 'junit:junit:4.12'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.8.1'
 }
@@ -39,10 +42,33 @@ configurations.all {
     exclude module: 'spring-boot-starter-logging'
 }
 
+def props = new Properties()
+file(".env").withInputStream { props.load(it) }
 project.archivesBaseName = 'FortifyDemoApp'
 group = 'com.microfocus.app'
 version = ''
 sourceCompatibility = '11'
+
+azurewebapp {
+    subscription = props.getProperty("AZURE_SUBSCRIPTION_ID") // e.g. '17d2722b-256e-47e5-84b8-5b01f509a42c'
+    resourceGroup = props.getProperty("AZURE_RESOURCE_GROUP") // e.g. 'fortify-demo-rg'
+    appName = props.getProperty("AZURE_APP_NAME") // e.g. 'fortify-demo-app'
+    pricingTier = 'B1'
+    region = props.getProperty("AZURE_REGION") // e.g. 'eastus'
+    runtime {
+        //os = 'Windows'
+        os = 'Linux'
+        webContainer = 'Tomcat 9.0'
+        //webContainer = 'Java SE'
+        javaVersion = 'Java 11'
+    }
+    appSettings {
+        key1=value1
+    }
+    auth {
+        type = 'azure_cli' // support azure_cli, oauth2, device_code and service_principal
+    }
+}
 
 publishing {
     publications {

@@ -9,6 +9,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -34,7 +35,8 @@ public class DefaultController
     }
 
     @GetMapping({"/", "/products"})
-    public ModelAndView showProductsPage(@RequestParam(value = "keywords", required = false)String keywords)
+    //public ModelAndView showProductsPage(@RequestParam(value = "keywords", required = false)String keywords)
+    public String showProductsPage(Model model, @RequestParam(value = "keywords", required = false)String keywords)
     {
         log.debug("DefaultController:showProductsPage");
         log.debug("Searching for products using keywords="+keywords);
@@ -49,12 +51,13 @@ public class DefaultController
             e.printStackTrace();
         }
 
-        ModelAndView mv = new ModelAndView();
+        //ModelAndView mv = new ModelAndView();
 
-        mv.setViewName("products/index");
-        mv.addObject("products", products);
-
-        return mv;
+        //mv.setViewName("index");
+        //mv.addObject("products", products);
+        model.addAttribute("products", products);
+        return "index";
+        //return mv;
     }
 
     @PostMapping(value = {"/api/subscribe-user"}, produces = {"application/json"}, consumes = {"application/json"})
