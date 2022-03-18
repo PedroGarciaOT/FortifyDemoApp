@@ -19,18 +19,20 @@ public class ProductRepository {
 
     public List<Product> findAll() {
         String sqlQuery = "select * from products";
-
         return jdbcTemplate.query(sqlQuery, new ProductMapper());
+    }
+
+    public int count() {
+        String sqlQuery = "select count(*) from products";
+        return jdbcTemplate.queryForObject(sqlQuery, Integer.class);
     }
 
     public List<Product> findByName(String keywords) {
         String query = keywords.toLowerCase();
-
         String sqlQuery = "SELECT * FROM " + getTableName() +
                 " WHERE lower(name) LIKE '%" + query + "%' " +
                 " OR lower(summary) LIKE '%" + query + "%'" +
                 " OR lower(description) LIKE '%" + query + "%'";
-
         return jdbcTemplate.query(sqlQuery, new ProductMapper());
     }
 

@@ -1,8 +1,7 @@
-<%@page import="com.microfocus.app.entity.Product" %>
-<%@page import="java.util.ArrayList" %>
-<%@page language="java" contentType="text/html; charset=ISO-8859-1" pageEncoding="ISO-8859-1" %>
-<%@taglib prefix="c" uri = "http://java.sun.com/jsp/jstl/core" %>
-<%@taglib prefix="fn" uri = "http://java.sun.com/jsp/jstl/functions" %>
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1" pageEncoding="ISO-8859-1" %>
+<%@ taglib prefix="c" uri = "http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri = "http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
@@ -19,10 +18,6 @@
 </head>
 
 <body>
-	<%
-		String keywords = request.getParameter("keywords");
-		if (keywords == null || keywords.isEmpty()) keywords = "";
-	%>
 
 	<div id="app" class="d-flex flex-column min-vh-100 site-wrap">
 
@@ -143,7 +138,7 @@
 		<div class="bg-light py-3">
 			<div class="container">
 				<div class="row">
-					<div class="col-md-12 mb-0"><a href="#">Products</a> </div>
+					<div class="col-md-12 mb-0"><a href="#">Shop</a> </div>
 				</div>
 			</div>
 		</div>
@@ -153,67 +148,111 @@
 
 			<div class="container">
 
-				<div class="row mb-1">
-					<form id="search" action="#" class="col-md-12" method="GET">
-						<div class="input-group">
-							<input type="text" class="form-control" placeholder="Search products" name="keywords"
-								   id="keywords" value="${param.keywords}">
-							<div class="input-group-append">
-								<button class="btn btn-secondary" type="submit">
-									<i class="fa fa-search"></i>
-								</button>
+				<c:if test="${haveKeywords}">
+					<div class="row pt-2">
+						<div class="col-md-12 text-center">
+							<h2>Searching for:
+								<span class="bg-light text-dark"><span id="search-keywords"><%= request.getParameter("keywords") %></span>
+							</h2>
+						</div>
+					</div>
+				</c:if>
+
+				<!-- search box -->
+				<div class="row d-flex justify-content-center">
+					<form id="search" class="col-md-10" action="#" method="GET">
+						<div class="card p-3 py-4">
+							<div class="row g-3 mt-2">
+								<div class="input-group">
+									<div class="col-md-3">
+										<div class="dropdown"> <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-expanded="false"> Category </button>
+											<ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+												<li><a class="dropdown-item" href="#">Vitamins & supplements</a></li>
+												<li><a class="dropdown-item" href="#">Skincare</a></li>
+												<li><a class="dropdown-item" href="#">Electricals</a></li>
+												<li><a class="dropdown-item" href="#">Health & wellbeing</a></li>
+											</ul>
+										</div>
+									</div>
+									<div class="col-md-6">
+										<input type="text" class="form-control" placeholder="Enter search keywords" name="keywords"
+											   id="keywords" value="<%= request.getParameter("keywords") != null ? request.getParameter("keywords") : "" %>"/>
+									</div>
+									<div class="col-md-3">
+										<button class="btn btn-secondary btn-block" type="submit">Search</button>
+									</div>
+								</div>
+							</div>
+							<div class="mt-3"> <a data-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample" class="advanced"> Advance Search With Filters <i class="fa fa-angle-down"></i> </a>
+								<div class="collapse" id="collapseExample">
+									<div class="card card-body">
+										<div class="row">
+											<div class="col-md-4"> <input type="text" placeholder="Product ID" class="form-control"> </div>
+											<div class="col-md-4"> <input type="text" class="form-control" placeholder="Medical Condition"> </div>
+											<div class="col-md-4"> <input type="text" class="form-control" placeholder="Search by Brand"> </div>
+										</div>
+									</div>
+								</div>
 							</div>
 						</div>
 					</form>
 				</div>
 
 				<div class="row pt-5">
-
-					<table class="table table-hover table-sm table-striped">
-						<thead>
-						<tr>
-							<th></th>
-							<th>Code</th>
-							<th>Name</th>
-							<th>Summary</th>
-							<th>Price</th>
-						</tr>
-						</thead>
-						<tbody>
-						<c:forEach items="${products}" var="p">
-							<c:set var="sumsubstr" value="${fn:substring(p.summary, 0, 40)}" />
-							<tr>
-								<td>
-									<img src="<c:url value="/img/products/${p.image}"/>" alt="image"
-										 width="100" height="100" class="img-fluid">
-								</td>
-								<td>
-									<a href="#"><c:out value="${p.code}" /></a>
-								</td>
-								<td>
-									<c:out value="${p.name}" />
-								</td>
-								<td>
-									<c:out value="${sumsubstr}" />
-								</td>
-								<td>
-									&#164;<c:out value="${p.price}" />
-								</td>
-							</tr>
-						</c:forEach>
-						</tbody>
-					</table>
-
-					<div class="row pt-4">
-						<div class="col-md-12">
-							<% if (keywords.length() > 0) { %>
-							<p>
-								Searching for "<%=keywords %>" - found <em><c:out value="${products.size()}"/></em> result(s).
+					<c:forEach items="${products}" var="p">
+						<div class="col-sm-6 col-lg-4 text-center item mb-4">
+							<c:choose>
+								<c:when test="${p.onSale}">
+									<span class="tag">Sale</span>
+								</c:when>
+							</c:choose>
+							<a href="#">
+								<c:choose>
+									<c:when test="${not empty p.image}">
+										<img src="<c:url value="/img/products/${p.image}"/>" alt="Image" class="img-thumbnail">
+									</c:when>
+									<c:otherwise>
+										<img src="<c:url value="/img/awaiting-image-sm.png"/>" alt="Awaiting Image" class="img-thumbnail">
+									</c:otherwise>
+								</c:choose>
+							</a>
+							<h3 class="text-dark"><a href="#"><c:out value="${p.name}" /></a></h3>
+							<p class="price">
+								<c:choose>
+									<c:when test="${p.onSale}">
+										<del>
+											<span>
+												<fmt:formatNumber value="${p.price}" type="currency" />
+											</span>
+										</del>
+										<span>&ndash;</span>
+										<span>
+											<fmt:formatNumber value="${p.salePrice}" type="currency" />
+										</span>
+									</c:when>
+									<c:otherwise>
+										<span>
+											<fmt:formatNumber value="${p.price}" type="currency" />
+										</span>
+									</c:otherwise>
+								</c:choose>
 							</p>
-							<% } %>
 						</div>
-					</div>
+					</c:forEach>
 
+				</div>
+
+				<div class="row pt-4">
+					<div class="col-md-12">
+						<c:choose>
+							<c:when test="${haveKeywords}">
+								<h5>Showing <span><c:out value="${productsCount}"/></span> of <span><c:out value="${productsTotal}"/></span> products</h5>
+							</c:when>
+							<c:otherwise>
+								<h5>Showing <span><c:out value="${productsCount}"></c:out> products</span></h5>
+							</c:otherwise>
+						</c:choose>
+					</div>
 				</div>
 
 			</div>
@@ -305,7 +344,7 @@
 			</div>
 		</footer>
 
-		<script type="text/javascript" src="<c:url value="/js/lib/jquery.min.js"/>"</script>
+		<script type="text/javascript" src="<c:url value="/js/lib/jquery.min.js"/>"></script>
 		<script type="text/javascript" src="<c:url value="/js/lib/bootstrap.bundle.min.js"/>"></script>
 		<script type="text/javascript" src="<c:url value="/js/SubscribeNewsletter.js"/>"></script>
 		<script type="text/javascript" src="<c:url value="/js/app.js"/>"></script>

@@ -54,10 +54,48 @@ AZURE_REGION=eastus
 
 Replace all the `XXX` and `YYY` values with values appropriate to your environment.
 
-Please do NOT add this file to source countrol.
+Please do NOT add this file to source control.
 
-Security Scan
--------------
+Run Application (locally)
+-------------------------
+
+You can the run the application locally using the following:
+
+```
+.\gradlew bootRun
+```
+
+The application should then be available at the URL `http://localhost:8088`. If it fails to start make sure you have
+no other applications running on port 8088.
+
+Deploy Application and Infrastructure
+-------------------------------------
+
+You can deploy the application to Microsoft Azure along with its required infrastructure
+by using the following (from a PowerShell command prompt):
+
+```
+Connect-AzAccount
+New-AzResourceGroup -Name fortify-demo-rg -Location eastus
+.\gradlew azureWebAppDeploy
+```
+
+Replace `eastus` with your own desired region.
+
+You can navigate to your [Azure portal](https://portal.azure.com/#home) to see the built infrastructure and to
+the deployed web application using the URL output shown from the `azureWebAppDeploy task`.
+
+Remove Application and Infrastructure
+-------------------------------------
+
+To clean up all the resources you can execute the following (from a PowerShell console):
+
+```
+Remove-AzResourceGroup -Name fortify-demo-rg
+```
+
+Application Security Testing
+----------------------------
 
 **Fortify Static Code Analyzer:**
 
@@ -108,44 +146,6 @@ To run a Fortify ScanCentral DAST scan you can use the included script `fortify-
 ```
 powershell .\bin\fortify-scancentral-dast.ps1
 ```
-Run Application (locally)
--------------------------
-
-You can the run the application locally using the following:
-
-```
-.\gradlew bootRun
-```
-
-The application should then be available at the URL `http://localhost:8088`. If it fails to start make sure you have
-no other applications running on port 8088.
-
-Deploy Application and Infrastructure
--------------------------------------
-
-You can deploy the application to Microsoft Azure along with its required infrastructure 
-by using the following (from a PowerShell command prompt):
-
-```
-Connect-AzAccount
-New-AzResourceGroup -Name fortify-demo-rg -Location eastus
-.\gradlew azureWebAppDeploy
-```
-
-Replace `eastus` with your own desired region.
-
-You can navigate to your [Azure portal](https://portal.azure.com/#home) to see the built infrastructure and to 
-the deployed web application using the URL output shown from the `azureWebAppDeploy task`.
-
-Remove Application and Infrastructure
--------------------------------------
-
-To clean up all the resources you can execute the following (from a PowerShell console):
-
-```
-Remove-AzResourceGroup -Name fortify-demo-rg
-```
-
 
 ---
 

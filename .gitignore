@@ -35,3 +35,4 @@ build
 # Fortify
 .fpr
 .pdf
+/vulnerabilities.txt

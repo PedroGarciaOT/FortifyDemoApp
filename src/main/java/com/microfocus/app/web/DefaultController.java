@@ -43,21 +43,21 @@ public class DefaultController
 
         List<Product> products = new ArrayList<>();
         try {
-            if (keywords == null || keywords.equals(""))
+            if (keywords == null || keywords.equals("")) {
                 products = productRepository.findAll();
-            else
+                model.addAttribute("haveKeywords", false);
+            } else {
                 products = productRepository.findByName(keywords);
-        } catch (Exception e) {
+                model.addAttribute("haveKeywords", true);
+            }
+        } catch (Exception e){
             e.printStackTrace();
         }
 
-        //ModelAndView mv = new ModelAndView();
-
-        //mv.setViewName("index");
-        //mv.addObject("products", products);
         model.addAttribute("products", products);
+        model.addAttribute("productsCount", products.size());
+        model.addAttribute("productsTotal", productRepository.count());
         return "index";
-        //return mv;
     }
 
     @PostMapping(value = {"/api/subscribe-user"}, produces = {"application/json"}, consumes = {"application/json"})
