@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id 'war'
+//    id 'war'
     id 'maven-publish'
     id "org.springframework.boot" version "2.1.8.RELEASE"
     id "com.microsoft.azure.azurewebapp" version "1.2.0"
@@ -47,7 +47,7 @@ file(".env").withInputStream { props.load(it) }
 project.archivesBaseName = 'FortifyDemoApp'
 group = 'com.microfocus.app'
 version = ''
-sourceCompatibility = '11'
+sourceCompatibility = '1.8'
 
 azurewebapp {
     subscription = props.getProperty("AZURE_SUBSCRIPTION_ID") // e.g. '17d2722b-256e-47e5-84b8-5b01f509a42c'
@@ -92,6 +92,7 @@ test {
 
 bootRun {
     //systemProperty "spring.profiles.active", "dev"
+    //jvmArgs = [ "-javaagent:C:\\Fortify_WebInspect_Runtime_Agent_Java_21.3.1\\lib\\FortifyAgent.jar" ]
 }
 
 task writeClasspath() {

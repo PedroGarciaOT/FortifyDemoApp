@@ -19,7 +19,7 @@ Setup
 First create a file called `.env` in the project root directory with content similar to the following:
 
 ```
-# The applications URL
+# The applications URL - when running locally
 APP_URL=http://localhost:8088
 # The URL of Software Security Center
 SSC_URL=http://fortify.xxx.xxx
@@ -34,6 +34,7 @@ SSC_APP_VER_NAME=main
 SCANCENTRAL_CTRL_URL=http://fortify.xxx.xxx/scancentral-ctrl
 SCANCENTRAL_CTRL_TOKEN=XXXXX
 SCANCENTRAL_POOL_ID=00000000-0000-0000-0000-000000000002
+# Change to your email address
 SCANCENTRAL_EMAIL=xxx.xxx@fortify.com
 SCANCENTRAL_DAST_API=http://fortify.xxx.xxx:64814
 SCANCENTRAL_DAST_CICD_TOKEN=XXXXX
@@ -48,6 +49,7 @@ FOD_API_SECRET=XXX
 # Azure (Resource Manager)
 AZURE_SUBSCRIPTION_ID=XXX
 AZURE_RESOURCE_GROUP=fortify-demo-rg
+# change the below to a unique name, e.g. "YOUR_INITIALS-fortify-demo-app"
 AZURE_APP_NAME=fortify-demo-app
 AZURE_REGION=eastus
 ```
