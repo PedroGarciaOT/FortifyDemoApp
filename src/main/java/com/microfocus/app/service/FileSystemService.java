@@ -13,47 +13,46 @@ import java.io.IOException;
 @Service
 public class FileSystemService {
 
-	private static final Logger log = LogManager.getLogger(FileSystemService.class);
+    public static final String USER_INFO_FILE = "user_info.json";
+    public static final String NEWSLETTER_USER_FILE = "newsletter_registration.json";
+    public static final String DEFAULT_ROLE = "guest";
+    private static final Logger log = LogManager.getLogger(FileSystemService.class);
 
-	public static final String USER_INFO_FILE = "user_info.json";
-	public static final String NEWSLETTER_USER_FILE = "newsletter_registration.json";
-	public static final String DEFAULT_ROLE = "guest";
+    public FileSystemService() {
+    }
 
-	public FileSystemService() {
-	}
+    public void writeUser(Integer id, String user, String email) throws IOException {
+        JsonFactory jsonFactory = new JsonFactory();
 
-	public void writeUser(Integer id, String user, String email) throws IOException {
-		JsonFactory jsonFactory = new JsonFactory();
+        File dataFile = new File(getFilePath(USER_INFO_FILE));
+        if (dataFile.createNewFile()) {
+            if (log.isDebugEnabled()) {
+                log.debug("Created: " + getFilePath(USER_INFO_FILE));
+            }
+        }
 
-		File dataFile = new File(getFilePath(USER_INFO_FILE));
-		if (dataFile.createNewFile()){
-			if (log.isDebugEnabled()) {
-				log.debug("Created: " + getFilePath(USER_INFO_FILE));
-			}
-		}
+        JsonGenerator jGenerator = jsonFactory.createGenerator(dataFile, JsonEncoding.UTF8);
 
-		JsonGenerator jGenerator = jsonFactory.createGenerator(dataFile, JsonEncoding.UTF8);
+        jGenerator.writeStartObject();
 
-		jGenerator.writeStartObject();
+        jGenerator.writeFieldName("id");
+        jGenerator.writeRawValue("\"" + id.toString() + "\"");
 
-		jGenerator.writeFieldName("id");
-		jGenerator.writeRawValue("\"" + id.toString() + "\"");
+        jGenerator.writeFieldName("name");
+        jGenerator.writeRawValue("\"" + user + "\"");
 
-		jGenerator.writeFieldName("name");
-		jGenerator.writeRawValue("\"" + user + "\"");
+        jGenerator.writeFieldName("email");
+        jGenerator.writeRawValue("\"" + email + "\"");
 
-		jGenerator.writeFieldName("email");
-		jGenerator.writeRawValue("\"" + email + "\"");
+        jGenerator.writeFieldName("role");
+        jGenerator.writeRawValue("\"default\"");
 
-		jGenerator.writeFieldName("role");
-		jGenerator.writeRawValue("\"default\"");
+        jGenerator.writeEndObject();
 
-		jGenerator.writeEndObject();
+        jGenerator.close();
+    }
 
-		jGenerator.close();
-	}
-
-	private String getFilePath(String relativePath) {
-		return System.getProperty("user.home") + File.separatorChar + relativePath;
-	}
+    private String getFilePath(String relativePath) {
+        return System.getProperty("user.home") + File.separatorChar + relativePath;
+    }
 }

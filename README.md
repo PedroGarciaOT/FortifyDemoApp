@@ -1,7 +1,7 @@
 # Fortify Demo App
 
 This is a sample Java/Spring web application that can be used for the demonstration of Fortify SAST, DAST and SCA.
-It is basically a cutdown "search" page from a larger sample application [IWAPharmacyDirect](https://github.com/fortify-presales/IWAPharmacyDirect) and
+It is a cutdown "search" results/details page from a larger sample application [IWAPharmacyDirect](https://github.com/fortify-presales/IWAPharmacyDirect) and
 is kept deliberately small in size to reduce scan times for demos.
 
 To use this demo in full you will need the following software installed:
@@ -50,7 +50,7 @@ FOD_API_SECRET=XXX
 AZURE_SUBSCRIPTION_ID=XXX
 AZURE_RESOURCE_GROUP=fortify-demo-rg
 # change the below to a unique name, e.g. "YOUR_INITIALS-fortify-demo-app"
-AZURE_APP_NAME=fortify-demo-app
+AZURE_APP_NAME=KAL-fortify-demo-app
 AZURE_REGION=eastus
 ```
 
@@ -64,25 +64,34 @@ Run Application (locally)
 You can the run the application locally using the following:
 
 ```
-.\gradlew bootRun
+gradlew bootRun
 ```
 
-The application should then be available at the URL `http://localhost:8088`. If it fails to start make sure you have
-no other applications running on port 8088.
+The application should then be available at the URL `http://localhost:8088`. If it fails to start,
+make sure you have no other applications running on port 8088. There are only a few features that are
+functional in this version of the app:
 
-Deploy Application and Infrastructure
--------------------------------------
+ - you can type in some keywords in the search box, e.g. "alphadex" to filter results
+ - you can click on any search result to navigate to a details page
+ - you can download a datasheet PDF from a details page
+ - you can subscribe to the newsletter by entering an email address in the input field of the footer   
 
-You can deploy the application to Microsoft Azure along with its required infrastructure
+These have been "enabled" because they all have potential security issues that can be found by Fortify.
+
+Deploy Application (Azure)
+--------------------------
+
+If you want to run the application in the cloud (so you can run a WebInspect span for example) you can deploy the application to Microsoft Azure along with its required infrastructure
 by using the following (from a PowerShell command prompt):
 
 ```
 Connect-AzAccount
 New-AzResourceGroup -Name fortify-demo-rg -Location eastus
-.\gradlew azureWebAppDeploy
+gradlew azureWebAppDeploy
 ```
 
-Replace `eastus` with your own desired region.
+Replace `eastus` with your own desired region and make sure in the `.env` file you have
+set `AZURE_APP_NAME` to a unique value.
 
 You can navigate to your [Azure portal](https://portal.azure.com/#home) to see the built infrastructure and to
 the deployed web application using the URL output shown from the `azureWebAppDeploy task`.
@@ -99,7 +108,15 @@ Remove-AzResourceGroup -Name fortify-demo-rg
 Application Security Testing
 ----------------------------
 
-**Fortify Static Code Analyzer:**
+As this is a Java/Spring application you can use it for demonstration of Fortify SAST/DAST
+correlation. If you run the Fortify Static Code Analyzer scan using the below script it includes
+the "`-Dcom.fortify.sca.rules.enable_wi_correlation=true`" command line switch that includes
+potential findings that can be found via DAST scan in the resultant FPR created. When you run a
+suitable ScanCentral DAST scan these results should be correlated in SSC. Please note as one
+of these findings is a "Blind SQL Injection" (WebInspect Check Id: 11299) you will need to ensure that you are using a suitable WebInspect
+policy. An example "Critical and Highs Custom Policy" is included [here](etc/Critical-and-Highs-Custom.policy).
+
+***Fortify Static Code Analyzer:***
 
 To run a Fortify Static Code Analyzer scan you can use the included script `fortify-sca.ps1` as follows:
 
@@ -121,11 +138,11 @@ There should be a number of issues including (but not limited to):
 
 - SQL Injection
 - JSON Injection
+- Path Manipulation  
 - Insecure Randomness
 - Empty Password in Configuration File
-- Path Manipulation
 
-**Fortify ScanCentral SAST:**
+***Fortify ScanCentral SAST:***
 
 To run a Fortify ScanCentral SAST scan you can use the included script `fortify-scancentral-sast.ps1` as follows:
 
@@ -133,15 +150,15 @@ To run a Fortify ScanCentral SAST scan you can use the included script `fortify-
 powershell .\bin\fortify-scancentral-sast.ps1
 ```
 
-**Fortify Software Composition Analysis**
+***Fortify Software Composition Analysis:***
 
-To run a Fortify Software Composition Analysis scan you can use the included script `fortify-sourceandlibscanner.ps1`
+To run a Fortify Software Composition Analysis (Sonatype) scan you can use the included script `fortify-sourceandlibscanner.ps1`
 
 ```
 powershell .\bin\fortify-sourceandlibscanner.ps1
 ```
 
-**Fortify ScanCentral DAST:**
+***Fortify ScanCentral DAST:***
 
 To run a Fortify ScanCentral DAST scan you can use the included script `fortify-scancentral-dast.ps1` as follows:
 

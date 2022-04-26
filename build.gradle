@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-//    id 'war'
+    id 'war'
     id 'maven-publish'
     id "org.springframework.boot" version "2.1.8.RELEASE"
     id "com.microsoft.azure.azurewebapp" version "1.2.0"
@@ -60,7 +60,7 @@ azurewebapp {
         os = 'Linux'
         webContainer = 'Tomcat 9.0'
         //webContainer = 'Java SE'
-        javaVersion = 'Java 11'
+        javaVersion = 'Java 1.8'
     }
     appSettings {
         key1=value1
@@ -92,7 +92,7 @@ test {
 
 bootRun {
     //systemProperty "spring.profiles.active", "dev"
-    //jvmArgs = [ "-javaagent:C:\\Fortify_WebInspect_Runtime_Agent_Java_21.3.1\\lib\\FortifyAgent.jar" ]
+    //jvmArgs = [ "-javaagent:C:\\Tools\\Fortify_WebInspect_Runtime_Agent_Java_21.3.1\\lib\\FortifyAgent.jar" ]
 }
 
 task writeClasspath() {

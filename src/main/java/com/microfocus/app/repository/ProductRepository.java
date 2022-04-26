@@ -6,6 +6,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.UUID;
 
 @Repository
 public class ProductRepository {
@@ -33,6 +34,13 @@ public class ProductRepository {
                 " WHERE lower(name) LIKE '%" + query + "%' " +
                 " OR lower(summary) LIKE '%" + query + "%'" +
                 " OR lower(description) LIKE '%" + query + "%'";
+        return jdbcTemplate.query(sqlQuery, new ProductMapper());
+    }
+
+    public List<Product> findById(UUID id) {
+        String query = id.toString().toLowerCase();
+        String sqlQuery = "SELECT * FROM " + getTableName() +
+                " WHERE lower(id) LIKE '%" + query + "%'";
         return jdbcTemplate.query(sqlQuery, new ProductMapper());
     }
 
