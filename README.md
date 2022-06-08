@@ -1,17 +1,18 @@
 # Fortify Demo App
 
 This is a sample Java/Spring web application that can be used for the demonstration of Fortify SAST, DAST and SCA.
-It is a cutdown "search" results/details page from a larger sample application [IWAPharmacyDirect](https://github.com/fortify-presales/IWAPharmacyDirect) and
-is kept deliberately small in size to reduce scan times for demos.
+It is a cutdown "search" results/details page from a larger sample application 
+[IWAPharmacyDirect](https://github.com/fortify-presales/IWAPharmacyDirect) and is kept deliberately small in size to reduce 
+scan times for demos.
 
 To use this demo in full you will need the following software installed:
 
 * [Fortify Static Code Analyzer and Tools](https://www.microfocus.com/en-us/cyberres/application-security/static-code-analyzer)
-* [Fortify Source and Lib Scanner](https://marketplace.microfocus.com/fortify/content/fortify-sourceandlibscanner)
 * [Fortify Software Security Center](https://www.microfocus.com/en-us/cyberres/application-security/software-security-center)  
-* *optional* [Fortify Software Composition Analysis](https://www.microfocus.com/en-us/cyberres/application-security/software-composition-analysis)
-* *optional* [Fortify ScanCentral SAST/DAST]() installation
-* *optional* [Azure PowerShell Module](https://docs.microsoft.com/en-us/powershell/azure/install-az-ps) for deploying application to Azure
+* *optional* A [Sonatype Nexus IQ Server](https://help.sonatype.com/iqserver) installation for Software Composition Analysis
+* *optional* A [Fortify Source And Lib Scanner](https://marketplace.microfocus.com/fortify/content/fortify-sourceandlibscanner) installation
+* *optional* A [Fortify ScanCentral SAST/DAST]() installation
+* *optional* A Microsoft Azure Subscription and [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli) for deploying application to Azure
 
 Setup
 -----
@@ -82,11 +83,11 @@ Deploy Application (Azure)
 --------------------------
 
 If you want to run the application in the cloud (so you can run a WebInspect span for example) you can deploy the application to Microsoft Azure along with its required infrastructure
-by using the following (from a PowerShell command prompt):
+by using the following (from a Windows command prompt):
 
 ```
-Connect-AzAccount
-New-AzResourceGroup -Name fortify-demo-rg -Location eastus
+az login [--tenant 856b813c-16e5-49a5-85ec-6f081e13b527]
+az group create --name fortify-demo-rg --location eastus
 gradlew azureWebAppDeploy
 ```
 
@@ -99,10 +100,11 @@ the deployed web application using the URL output shown from the `azureWebAppDep
 Remove Application and Infrastructure
 -------------------------------------
 
-To clean up all the resources you can execute the following (from a PowerShell console):
+To clean up all the resources you can execute the following (from a Windows command prompt):
 
 ```
-Remove-AzResourceGroup -Name fortify-demo-rg
+az group delete --name fortify-demo-rg
+
 ```
 
 Application Security Testing
@@ -113,8 +115,9 @@ correlation. If you run the Fortify Static Code Analyzer scan using the below sc
 the "`-Dcom.fortify.sca.rules.enable_wi_correlation=true`" command line switch that includes
 potential findings that can be found via DAST scan in the resultant FPR created. When you run a
 suitable ScanCentral DAST scan these results should be correlated in SSC. Please note as one
-of these findings is a "Blind SQL Injection" (WebInspect Check Id: 11299) you will need to ensure that you are using a suitable WebInspect
-policy. An example "Critical and Highs Custom Policy" is included [here](etc/Critical-and-Highs-Custom.policy).
+of these findings is a "Blind SQL Injection" (WebInspect Check Id: 11299) you will need to ensure that you are 
+using a suitable WebInspect policy. An example "Critical and Highs Custom Policy" is included 
+[here](etc/Critical-and-Highs-Custom.policy).
 
 ***Fortify Static Code Analyzer:***
 
