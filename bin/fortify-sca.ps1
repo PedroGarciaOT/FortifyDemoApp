@@ -2,6 +2,16 @@
 # Example script to perform Fortify SCA static analysis
 #
 
+# Parameters
+param (
+    [Parameter(Mandatory=$false)]
+    [switch]$QuickScan,
+    [Parameter(Mandatory=$false)]
+    [switch]$SkipPDF,
+    [Parameter(Mandatory=$false)]
+    [switch]$SkipSSC
+)
+
 # Import some supporting functions
 Import-Module $PSScriptRoot\modules\FortifyFunctions.psm1
 
@@ -11,7 +21,15 @@ $AppName = $EnvSettings['SSC_APP_NAME']
 $AppVersion = $EnvSettings['SSC_APP_VER_NAME']
 $SSCUrl = $EnvSettings['SSC_URL']
 $SSCAuthToken = $EnvSettings['SSC_AUTH_TOKEN'] # CIToken
-$ScanSwitches = "-Dcom.fortify.sca.rules.enable_wi_correlation=true -Dcom.fortify.sca.Phase0HigherOrder.Languages=javascript,typescript -Dcom.fortify.sca.EnableDOMModeling=true -Dcom.fortify.sca.follow.imports=true -Dcom.fortify.sca.exclude.unimported.node.modules=true"
+$ScanSwitches = "-Dcom.fortify.sca.rules.enable_wi_correlation=true `
+-Dcom.fortify.sca.Phase0HigherOrder.Languages=javascript,typescript `
+-Dcom.fortify.sca.EnableDOMModeling=true -Dcom.fortify.sca.follow.imports=true `
+-Dcom.fortify.sca.exclude.unimported.node.modules=true"
+if ($QuickScan) {
+    $PrecisionLevel = 1
+} else {
+    $PrecisionLevel = 3 # or 4 for full scan
+}
 
 # Test we have Fortify installed successfully
 Test-Environment
@@ -19,7 +37,7 @@ if ([string]::IsNullOrEmpty($AppName)) { throw "Application Name has not been se
 
 # Run the translation and scan
 
-# Compile the application if bot already built
+# Compile the application if not already built
 $DependenciesFile = Join-Path -Path (Get-Location) -ChildPath build\classpath.txt
 if (-not (Test-Path -PathType Leaf -Path $DependenciesFile)) {
     Write-Host Cleaning up workspace...
@@ -43,10 +61,12 @@ Write-Host Running scan...
 # summarise issue count by analyzer
 & fprutility -information -analyzerIssueCounts -project "$($AppName).fpr"   
 
-Write-Host Generating PDF report...
-& ReportGenerator '-Dcom.fortify.sca.ProjectRoot=.fortify' -user "Demo User" -format pdf -f "$($AppName).pdf" -source "$($AppName).fpr"
+if (-not $SkipPDF) {
+    Write-Host Generating PDF report...
+    & ReportGenerator '-Dcom.fortify.sca.ProjectRoot=.fortify' -user "Demo User" -format pdf -f "$($AppName).pdf" -source "$($AppName).fpr"
+}
 
-if (![string]::IsNullOrEmpty($SSCUrl)) {
+if (-not $SkipSSC) {
     Write-Host Uploading results to SSC...
     & fortifyclient uploadFPR -file "$($AppName).fpr" -url $SSCUrl -authtoken $SSCAuthToken -application $AppName -applicationVersion $AppVersion
 }
