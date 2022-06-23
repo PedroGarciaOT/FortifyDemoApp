@@ -1,7 +1,8 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1" pageEncoding="ISO-8859-1" %>
-<%@ taglib prefix="c" uri = "http://java.sun.com/jsp/jstl/core" %>
-<%@ taglib prefix="fn" uri = "http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 
 <!-- header -->
 <div class="site-navbar py-2">
@@ -80,22 +81,41 @@
                 <ul>
                     <li>
                         <div class="has-children">
-                            <a href="#" class="icons-menu d-inline-block">
-                                <span class="icon-account_circle"></span>
-                                <span class="my-account-text">My Account</span>
-                            </a>
-                            <ul class="dropdown">
-                                <li>
-                                    <a href="#">
-                                        <i class="fas fa-sign-in-alt fa-fw"></i> Login
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="nav-link" href="#">
-                                        <i class="fas fa-code fa-fw"></i> API Explorer
-                                    </a>
-                                </li>
-                            </ul>
+                            <sec:authorize access="isAnonymous()">
+                                <a href="/login" class="icons-menu d-inline-block">
+                                    <span class="icon-account_circle"></span>
+                                    <span class="my-account-text">My Account</span>
+                                </a>
+                                <ul class="dropdown">
+                                    <li>
+                                        <a href="/login">
+                                            <i class="fas fa-sign-in-alt fa-fw"></i> Login
+                                        </a>
+                                    </li>
+                                </ul>
+                            </sec:authorize>
+                            <sec:authorize access="isAuthenticated()">
+                                <a href="/user" class="icons-menu d-inline-block">
+                                    <span class="icon-account_circle"></span>
+                                    <span class="my-account-text"><sec:authentication property="name"/></span>
+                                </a>
+                                <ul class="dropdown">
+                                    <li>
+                                        <a th:href="/user"><i class="fas fa-home fa-fw"></i> Home </a>
+                                    </li>
+                                    <sec:authorize access="hasRole('ROLE_ADMIN')">
+                                        <li>
+                                            <a th:href="/admin"><i class="fas fa-tools fa-fw"></i> Site Administration </a>
+                                        </li>
+                                        <li sec:authorize="hasRole('ROLE_ADMIN')">
+                                            <a th:href="/console" target="_blank"><i class="fas fa-database fa-fw"></i> Database Console</a>
+                                        </li>
+                                    </sec:authorize>
+                                    <li>
+                                        <a class="nav-link" href="/logout"><i class="fas fa-sign-out-alt fa-fw"></i> Logout </a>
+                                    </li>
+                                </ul>
+                            </sec:authorize>
                         </div>
                     </li>
                     <li>

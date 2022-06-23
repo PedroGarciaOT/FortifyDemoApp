@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -41,6 +42,22 @@ public class DefaultController {
         this.productRepository = productRepository;
         this.fileSystemService = fileSystemService;
     }
+
+    @GetMapping("/login")
+    public String login(HttpServletRequest request, Model model, Principal principal) {
+        return "login";
+    }
+
+    @GetMapping("/user")
+    public String userHome(HttpServletRequest request, Model model, Principal principal) {
+        return "user/index";
+    }
+
+    @GetMapping("/admin")
+    public String adminHome(HttpServletRequest request, Model model, Principal principal) {
+        return "admin/index";
+    }
+
 
     @GetMapping({"/", "/products"})
     public String showProductsPage(Model model, @RequestParam(value = "keywords", required = false) String keywords) {
