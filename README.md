@@ -10,7 +10,6 @@ To use this demo in full you will need the following software installed:
 * [Fortify Static Code Analyzer and Tools](https://www.microfocus.com/en-us/cyberres/application-security/static-code-analyzer)
 * [Fortify Software Security Center](https://www.microfocus.com/en-us/cyberres/application-security/software-security-center)  
 * *optional* A [Sonatype Nexus IQ Server](https://help.sonatype.com/iqserver) installation for Software Composition Analysis
-* *optional* A [Fortify Source And Lib Scanner](https://marketplace.microfocus.com/fortify/content/fortify-sourceandlibscanner) installation
 * *optional* A [Fortify ScanCentral SAST/DAST]() installation
 * *optional* A Microsoft Azure Subscription and [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli) for deploying application to Azure
 
@@ -75,19 +74,20 @@ functional in this version of the app:
  - you can type in some keywords in the search box, e.g. "alphadex" to filter results
  - you can click on any search result to navigate to a details page
  - you can download a datasheet PDF from a details page
- - you can subscribe to the newsletter by entering an email address in the input field of the footer   
+ - you can subscribe to the newsletter by entering an email address in the input field of the footer
+ - you can login/logout
 
 These have been "enabled" because they all have potential security issues that can be found by Fortify.
 
 Deploy Application (Azure)
 --------------------------
 
-If you want to run the application in the cloud (so you can run a WebInspect span for example) you can deploy the application to Microsoft Azure along with its required infrastructure
+If you want to run the application in the cloud (so you can run a WebInspect scan for example) you can deploy the application to Microsoft Azure along with its required infrastructure
 by using the following (from a Windows command prompt):
 
 ```
 az login [--tenant 856b813c-16e5-49a5-85ec-6f081e13b527]
-az group create --name fortify-demo-rg --location eastus
+az group create --name [YOUR_INITIALS]-fortify-demo-rg --location eastus
 gradlew azureWebAppDeploy
 ```
 
@@ -109,15 +109,6 @@ az group delete --name fortify-demo-rg
 
 Application Security Testing
 ----------------------------
-
-As this is a Java/Spring application you can use it for demonstration of Fortify SAST/DAST
-correlation. If you run the Fortify Static Code Analyzer scan using the below script it includes
-the "`-Dcom.fortify.sca.rules.enable_wi_correlation=true`" command line switch that includes
-potential findings that can be found via DAST scan in the resultant FPR created. When you run a
-suitable ScanCentral DAST scan these results should be correlated in SSC. Please note as one
-of these findings is a "Blind SQL Injection" (WebInspect Check Id: 11299) you will need to ensure that you are 
-using a suitable WebInspect policy. An example "Critical and Highs Custom Policy" is included 
-[here](etc/Critical-and-Highs-Custom.policy).
 
 ***Fortify Static Code Analyzer:***
 
@@ -153,14 +144,6 @@ To run a Fortify ScanCentral SAST scan you can use the included script `fortify-
 powershell .\bin\fortify-scancentral-sast.ps1
 ```
 
-***Fortify Software Composition Analysis:***
-
-To run a Fortify Software Composition Analysis (Sonatype) scan you can use the included script `fortify-sourceandlibscanner.ps1`
-
-```
-powershell .\bin\fortify-sourceandlibscanner.ps1
-```
-
 ***Fortify ScanCentral DAST:***
 
 To run a Fortify ScanCentral DAST scan you can use the included script `fortify-scancentral-dast.ps1` as follows:
@@ -169,6 +152,15 @@ To run a Fortify ScanCentral DAST scan you can use the included script `fortify-
 powershell .\bin\fortify-scancentral-dast.ps1
 ```
 
+***SAST/DAST Correlation:***
+
+As this is a Java/Spring application you can use it for demonstration of Fortify SAST/DAST
+correlation. If you run the above PowerShell script it includes the "`-Dcom.fortify.sca.rules.enable_wi_correlation=true`"
+command line switch to record potential correlations in the resultant FPR created. When you run a
+suitable ScanCentral DAST scan that finds the same vulnerabilities these results should be correlated in SSC. Please note as one
+of these findings is a "Blind SQL Injection" (WebInspect Check Id: 11299) you will need to ensure that you are
+using a suitable WebInspect policy. An example "Critical and Highs Custom Policy" is included
+[here](etc/Critical-and-Highs-Custom.policy).
 ---
 
 Kevin A. Lee (kadraman) - kevin.lee@microfocus.com
