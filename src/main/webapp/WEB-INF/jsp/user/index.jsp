@@ -38,7 +38,40 @@
 
 			<div class="container">
 
-				<p>Welcome to your home page <sec:authentication property="name"/> ...</p>
+				<div class="row">
+					<div class="col-md-3 mr-auto">
+						<jsp:include page="../includes/user-menu.jsp"></jsp:include>
+					</div>
+					<div class="col-md-9">
+
+						<form class="form-horizontal">
+							<div class="jumbotron">
+								<h1 class="display-4">Hello, <sec:authentication property="name"/></h1>
+								<p class="lead">
+									Welcome back to IWA Pharmacy Direct. This is your home page where you can check the status of your orders,
+									view any messages and update your profile.</p>
+								<hr class="my-4">
+
+								<div class="col-md-12">
+									<div class="alert alert-light" role="alert">
+										You have no new messages.
+									</div>
+								</div>
+
+								<div class="col-md-12">
+									<div class="alert alert-light" role="alert">
+										You have no unshipped orders.
+									</div>
+								</div>
+
+								<div class="col-md-12 mt-4">
+									<a class="btn btn-primary" href="/products">Shop Now</a>
+									<a class="btn btn-primary" href="">View Profile</a>
+								</div>
+							</div>
+						</form>
+					</div>
+				</div>
 
 			</div>
 
