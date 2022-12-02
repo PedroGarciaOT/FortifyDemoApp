@@ -2,6 +2,12 @@
 # Example script to perform Fortify ScanCentral SAST scan
 #
 
+# Parameters
+param (
+    [Parameter(Mandatory=$false)]
+    [switch]$QuickScan
+)
+
 # Import some supporting functions
 Import-Module $PSScriptRoot\modules\FortifyFunctions.psm1
 
@@ -16,6 +22,11 @@ $ScanCentralCtrlToken = $EnvSettings['SCANCENTRAL_CTRL_TOKEN'] # ScanCentralCtrl
 $ScanCentralPoolId = $EnvSettings['SCANCENTRAL_POOL_ID']
 $ScanCentralEmail = $EnvSettings['SCANCENTRAL_EMAIL']
 $ScanSwitches = "-Dcom.fortify.sca.Phase0HigherOrder.Languages=javascript,typescript -Dcom.fortify.sca.EnableDOMModeling=true -Dcom.fortify.sca.follow.imports=true -Dcom.fortify.sca.exclude.unimported.node.modules=true"
+$ScanArgs = @()
+if ($QuickScan) {
+    $ScanArgs += "-sargs"
+    $ScanArgs += "`"-scan-precision 1`""
+}
 
 # Test we have Fortify installed successfully
 Test-Environment
@@ -26,15 +37,21 @@ if ([string]::IsNullOrEmpty($SSCAuthToken)) { throw "SSC Authentication token ha
 if ([string]::IsNullOrEmpty($AppName)) { throw "Application Name has not been set" }
 if ([string]::IsNullOrEmpty($AppVersion)) { throw "Application Version has not been set" }
 
-# Upload and run the scan
-
+# Package, upload and run the scan and import results into SSC
 Write-Host Invoking ScanCentral SAST ...
-Write-Host "scancentral -url $ScanCentralCtrlUrl -ssctoken $SSCAuthToken start -upload -uptoken $ScanCentralCtrlToken -b $AppName --application $AppName --application-version $AppVersion -email $ScanCentralEmail -bt mvn -bf pom.xml -scan"
-& scancentral -url $ScanCentralCtrlUrl -ssctoken $SSCAuthToken start -bt mvn -bf pom.xml -upload `
-    -uptoken $ScanCentralCtrlToken -b $AppName `
-    -application $AppName -version $AppVersion  `
-    -email $ScanCentralEmail
+Write-Host "scancentral -url $ScanCentralCtrlUrl -ssctoken $SSCAuthToken start -upload -uptoken $ScanCentralCtrlToken -b $AppName -application $AppName -version $AppVersion -bt gradle -bf build.gradle -email $ScanCentralEmail -block -o -f $($AppName).fpr $($ScanArgs)"
+& scancentral -url $ScanCentralCtrlUrl -ssctoken $SSCAuthToken start -upload -uptoken $ScanCentralCtrlToken `
+    -b $AppName -application $AppName -version $AppVersion -bt gradle -bf build.gradle `
+    -email $ScanCentralEmail -block -o -f "$($AppName).fpr" `
+    $($ScanArgs)
 
-Write-Host
-Write-Host You can check ongoing status with:
-Write-Host " scancentral -url $ScanCentralCtrlUrl status -token [received-token]"
+# summarise issue count by analyzer
+if ($SCALocalInstall -eq $True) {
+    & fprutility -information -analyzerIssueCounts -project "$($AppName).fpr"
+    Write-Host Generating PDF report...
+    & ReportGenerator '-Dcom.fortify.sca.ProjectRoot=.fortify' -user "Demo User" -format pdf -f "$($AppName).pdf" -source "$($AppName).fpr"
+}
+
+#Write-Host
+#Write-Host You can check ongoing status with:
+#Write-Host " scancentral -url $ScanCentralCtrlUrl status -token [received-token]"

@@ -1,3 +1,12 @@
+INSERT INTO users (id, username, password, first_name, last_name, email, phone, address, city, state, zip, country, date_created, role, enabled)
+VALUES ('e18c8bcc-935d-444d-a194-3a32a3b35a49', 'admin', '$2a$10$YFhTnHpCL.Z0Ev0j1CbEUub7sIWmN7Qd5RmnU8g5ekuoapV7Zdx32',
+        'Admin', 'User', 'admin@localhost.com', '+44808123456', '', '', '', '', 'United Kingdom', CURDATE(), 'ROLE_ADMIN', 1);
+INSERT INTO users (id, username, password, first_name, last_name, email, phone, address, city, state, zip, country, date_created, role, enabled)
+VALUES ('32e7db01-86bc-4687-9ecb-d79b265ac14f', 'user1', '$2a$10$YFhTnHpCL.Z0Ev0j1CbEUub7sIWmN7Qd5RmnU8g5ekuoapV7Zdx32',
+        'Sam', 'Shopper', 'user1@localhost.com', '+44808123456', '1 Somewhere Street', 'London', 'Greater London', 'SW1', 'United Kingdom', CURDATE(), 'ROLE_USER', 1);
+INSERT INTO users (id, username, password, first_name, last_name, email, phone, address, city, state, zip, country, date_created, role, enabled)
+VALUES ('db4cfab1-ff1d-4bca-a662-394771841383', 'user2', '$2a$10$YFhTnHpCL.Z0Ev0j1CbEUub7sIWmN7Qd5RmnU8g5ekuoapV7Zdx32',
+        'Sarah', 'Shopper', 'user2@localhost.com', '+44808123456', '1 Somewhere Street', 'London', 'Greater London', 'SW1', 'United Kingdom', CURDATE(), 'ROLE_USER', 1);
 INSERT INTO products (id, code, name, rating, summary, description, image, price, in_stock, time_to_stock, available)
 VALUES ('eec467c8-5de9-4c7c-8541-7b31614d31a0', 'SWA234-A568-00010', 'Solodox 750', 4,
         'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin pharetra enim erat, sed tempor mauris viverra in. Donec ante diam, rhoncus dapibus efficitur ut, sagittis a elit. Integer non ante felis. Curabitur nec lectus ut velit bibendum euismod. Nulla mattis convallis neque ac euismod. Ut vel mattis lorem, nec tempus nibh. Vivamus tincidunt enim a risus placerat viverra. Curabitur diam sapien, posuere dignissim accumsan sed, tempus sit amet diam. Aliquam tincidunt vitae quam non rutrum. Nunc id sollicitudin neque, at posuere metus. Sed interdum ex erat, et ornare purus bibendum id. Suspendisse sagittis est dui. Donec vestibulum elit at arcu feugiat porttitor.',
