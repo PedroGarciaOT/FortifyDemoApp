@@ -1,0 +1,73 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+name: Build and OSS Scan
+
+# TODO: Customize trigger events based on your DevSecOps processes
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    paths-ignore:
+      - .github/workflows/**
+      - 'bin/**'
+      - 'data/**'
+      - 'etc/**'
+      - 'media/**'
+      - '.gitlab-ci.yml'
+      - 'README.md'
+      - 'LICENSE'
+    branches:
+      - '**'        # matches every branch
+  pull_request:
+    branches: [ main ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+    inputs:
+      debug:
+        description: 'Debug Pipeline execution'
+        required: false
+        default: 'true'
+
+jobs:
+  Build-And-Scan:
+    # Use the appropriate runner for building your source code.
+    # TODO: Use a Windows runner for .NET projects that use msbuild. Additional changes to RUN commands will be required to switch to Windows syntax.
+    runs-on: ubuntu-latest
+    #runs-on: self-hosted
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    steps:
+      # Check out source code
+      - name: Check Out Source Code
+        uses: actions/checkout@v2
+
+      # Java is required to run the various Fortify utilities.
+      # When scanning a Java application, please use the appropriate Java version for building your application.
+      - name: Setup Java
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'zulu'
+          java-version: '11'
+          cache: 'gradle'
+          #cache: 'maven'
+      - run: mvn test
+
+      # Build and unit-test the application
+      - name: Build with Gradle
+        run: ./gradlew clean build
+
+      # Generate gradle dependencies file for Debricked
+      - run: sh ./gradlew dependencies > .debricked-gradle-dependencies.txt
+
+      # Execute a Debricked scan
+      - name: Debricked Vulnerability Scan
+        uses: debricked/actions@v1
+        env:
+          DEBRICKED_TOKEN: ${{ secrets.DEBRICKED_TOKEN }}
+
