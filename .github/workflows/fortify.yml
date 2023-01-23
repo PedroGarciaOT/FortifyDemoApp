@@ -90,7 +90,7 @@ jobs:
         env:
             PACKAGE_OPTS: '-bt gradle -bf build.gradle -bc "clean build" -oss'
             PACKAGE_FILE: "package.zip"
-      - run: ls -l package.zip
+      - run: cat /home/runner/.fortify/scancentral-22.1.0/log/scancentral.log
 
       # Start Fortify on Demand SAST scan and wait until results complete. For more information on FoDUploader commands, see https://github.com/fod-dev/fod-uploader-java
       # TODO: Update ENV variables for your application and create the necessary GitHub Secrets.  Helpful hints:
