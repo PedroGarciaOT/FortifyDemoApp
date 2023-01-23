@@ -1,16 +1,14 @@
 # Fortify Demo App
 
-This is a sample Java/Spring web application that can be used for the demonstration of Fortify SAST, DAST and SCA.
-It is a cutdown "search" results/details page from a larger sample application 
-[IWAPharmacyDirect](https://github.com/fortify-presales/IWAPharmacyDirect) and is kept deliberately small in size to reduce 
-scan times for demos.
+This is a sample Java/Spring web application that can be used for the demonstration of [Fortify on Demand](https://www.microfocus.com/en-us/cyberres/application-security/fortify-on-demand)
+and [Debricked](https://debricked.com/). It is a cut down "search" results/details page from a larger sample application 
+[IWAPharmacyDirect](https://github.com/fortify-presales/IWAPharmacyDirect) and is kept deliberately small for demos.
 
-To use this demo in full you will need the following software installed:
+To use this demo in full you will need:
 
-* [Fortify Static Code Analyzer and Tools](https://www.microfocus.com/en-us/cyberres/application-security/static-code-analyzer)
-* [Fortify Software Security Center](https://www.microfocus.com/en-us/cyberres/application-security/software-security-center)  
-* *optional* A [Sonatype Nexus IQ Server](https://help.sonatype.com/iqserver) installation for Software Composition Analysis
-* *optional* A [Fortify ScanCentral SAST/DAST]() installation
+* a [Fortify on Demand](https://www.microfocus.com/en-us/cyberres/application-security/fortify-on-demand) tenant, account and application subscription
+* a [Debricked](https://debricked.com/) account  
+* a [Fortify CLI installation](https://fortify-ps.github.io/fcli/)
 * *optional* A Microsoft Azure Subscription and [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli) for deploying application to Azure
 
 Setup
@@ -19,29 +17,6 @@ Setup
 First create a file called `.env` in the project root directory with content similar to the following:
 
 ```
-# The applications URL - when running locally
-APP_URL=http://localhost:8088
-# The URL of Software Security Center
-SSC_URL=http://fortify.xxx.xxx
-SSC_USERNAME=admin
-SSC_PASSWORD=XXX
-# SSC Authentication Token (recommended to use CIToken)
-SSC_AUTH_TOKEN=XXXXX
-# Name of the application in SSC
-SSC_APP_NAME=FortifyDemoApp
-# Name of the application version in SSC
-SSC_APP_VER_NAME=main
-SCANCENTRAL_CTRL_URL=http://fortify.xxx.xxx/scancentral-ctrl
-SCANCENTRAL_CTRL_TOKEN=XXXXX
-SCANCENTRAL_POOL_ID=00000000-0000-0000-0000-000000000002
-# Change to your email address
-SCANCENTRAL_EMAIL=xxx.xxx@fortify.com
-SCANCENTRAL_DAST_API=http://fortify.xxx.xxx:64814
-SCANCENTRAL_DAST_CICD_TOKEN=XXXXX
-# Nexus IQ Lifecycle
-NEXUS_IQ_URL=http://fortify.xxx.xxx:8070/
-NEXUS_IQ_AUTH=XXX:YYY
-NEXUS_IQ_APP_ID=FortifyDemoApp
 # Fortify on Demand
 FOD_API_URL=https://api.xxx.fortify.com
 FOD_API_KEY=XXX
@@ -82,11 +57,11 @@ These have been "enabled" because they all have potential security issues that c
 Deploy Application (Azure)
 --------------------------
 
-If you want to run the application in the cloud (so you can run a WebInspect scan for example) you can deploy the application to Microsoft Azure along with its required infrastructure
-by using the following (from a Windows command prompt):
+If you want to run the application in the cloud (to run a Fortify on Demand DAST scan) you can deploy the application 
+to Microsoft Azure along with its required infrastructure by using the following (from a Windows command prompt):
 
 ```
-az login [--tenant 856b813c-16e5-49a5-85ec-6f081e13b527]
+az login [--tenant XXXX]
 az group create --name [YOUR_INITIALS]-fortify-demo-rg --location eastus
 gradlew azureWebAppDeploy
 ```
@@ -103,30 +78,27 @@ Remove Application and Infrastructure
 To clean up all the resources you can execute the following (from a Windows command prompt):
 
 ```
-az group delete --name fortify-demo-rg
+az group delete --name [YOUR_INITIALS]-fortify-demo-rg
 
 ```
 
 Application Security Testing
 ----------------------------
 
-***Fortify Static Code Analyzer:***
+***Fortify on Demand***
 
-To run a Fortify Static Code Analyzer scan you can use the included script `fortify-sca.ps1` as follows:
+To package the application's source code and start a Fortify on Demand SAST scan carry out the following:
 
 ```
-powershell .\bin\fortify-sca.ps1
+scancentral package -bt gradle -o FoDUpload.zip
+fcli fod session login --url https://api.ams.fortify.com --tenant [YOUR-TENANT] --user [YOUR-USER-LOGIN] --password [YOUR-PASSWORD]
+...
+fcli fod session logout
 ```
 
 This will scan the applications source code.
 
-An example results file (in PDF) is available [here](samples/FortifyDemoApp.pdf).
-
-To view the full results yourself you can use:
-
-```
-auditworkbench .\FortifyDemoApp.fpr
-```
+An example results file (in PDF) is available [here](samples/fod-sast.pdf).
 
 There should be a number of issues including (but not limited to):
 
@@ -136,31 +108,7 @@ There should be a number of issues including (but not limited to):
 - Insecure Randomness
 - Empty Password in Configuration File
 
-***Fortify ScanCentral SAST:***
 
-To run a Fortify ScanCentral SAST scan you can use the included script `fortify-scancentral-sast.ps1` as follows:
-
-```
-powershell .\bin\fortify-scancentral-sast.ps1
-```
-
-***Fortify ScanCentral DAST:***
-
-To run a Fortify ScanCentral DAST scan you can use the included script `fortify-scancentral-dast.ps1` as follows:
-
-```
-powershell .\bin\fortify-scancentral-dast.ps1
-```
-
-***SAST/DAST Correlation:***
-
-As this is a Java/Spring application you can use it for demonstration of Fortify SAST/DAST
-correlation. If you run the above PowerShell script it includes the "`-Dcom.fortify.sca.rules.enable_wi_correlation=true`"
-command line switch to record potential correlations in the resultant FPR created. When you run a
-suitable ScanCentral DAST scan that finds the same vulnerabilities these results should be correlated in SSC. Please note as one
-of these findings is a "Blind SQL Injection" (WebInspect Check Id: 11299) you will need to ensure that you are
-using a suitable WebInspect policy. An example "Critical and Highs Custom Policy" is included
-[here](etc/Critical-and-Highs-Custom.policy).
 ---
 
 Kevin A. Lee (kadraman) - kevin.lee@microfocus.com

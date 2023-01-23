@@ -15,11 +15,9 @@ Import-Module $PSScriptRoot\modules\FortifyFunctions.psm1
 $EnvSettings = $(ConvertFrom-StringData -StringData (Get-Content ".\.env" | Where-Object {-not ($_.StartsWith('#'))} | Out-String))
 $AppName = $EnvSettings['SSC_APP_NAME']
 $AppVersion = $EnvSettings['SSC_APP_VER_NAME']
-$SSCUrl = $EnvSettings['SSC_URL']
 $SSCAuthToken = $EnvSettings['SSC_AUTH_TOKEN'] # CIToken
 $ScanCentralCtrlUrl = $EnvSettings['SCANCENTRAL_CTRL_URL']
-$ScanCentralCtrlToken = $EnvSettings['SCANCENTRAL_CTRL_TOKEN'] # ScanCentralCtrlToken
-$ScanCentralPoolId = $EnvSettings['SCANCENTRAL_POOL_ID']
+$ScanCentralPoolId = $EnvSettings['SCANCENTRAL_POOL_ID'] # Not yet used
 $ScanCentralEmail = $EnvSettings['SCANCENTRAL_EMAIL']
 $ScanSwitches = "-Dcom.fortify.sca.Phase0HigherOrder.Languages=javascript,typescript -Dcom.fortify.sca.EnableDOMModeling=true -Dcom.fortify.sca.follow.imports=true -Dcom.fortify.sca.exclude.unimported.node.modules=true"
 $ScanArgs = @()
@@ -31,7 +29,6 @@ if ($QuickScan) {
 # Test we have Fortify installed successfully
 Test-Environment
 if ([string]::IsNullOrEmpty($ScanCentralCtrlUrl)) { throw "ScanCentral Controller URL has not been set" }
-if ([string]::IsNullOrEmpty($ScanCentralCtrlToken)) { throw "ScanCentral Controller Token has not been set" }
 if ([string]::IsNullOrEmpty($ScanCentralEmail)) { throw "ScanCentral Email has not been set" }
 if ([string]::IsNullOrEmpty($SSCAuthToken)) { throw "SSC Authentication token has not been set" }
 if ([string]::IsNullOrEmpty($AppName)) { throw "Application Name has not been set" }
@@ -39,8 +36,8 @@ if ([string]::IsNullOrEmpty($AppVersion)) { throw "Application Version has not b
 
 # Package, upload and run the scan and import results into SSC
 Write-Host Invoking ScanCentral SAST ...
-Write-Host "scancentral -url $ScanCentralCtrlUrl -ssctoken $SSCAuthToken start -upload -uptoken $ScanCentralCtrlToken -b $AppName -application $AppName -version $AppVersion -bt gradle -bf build.gradle -email $ScanCentralEmail -block -o -f $($AppName).fpr $($ScanArgs)"
-& scancentral -url $ScanCentralCtrlUrl -ssctoken $SSCAuthToken start -upload -uptoken $ScanCentralCtrlToken `
+Write-Host "scancentral -url $ScanCentralCtrlUrl start -upload -uptoken $SSCAuthToken -b $AppName -application $AppName -version $AppVersion -bt gradle -bf build.gradle -email $ScanCentralEmail -block -o -f $($AppName).fpr $($ScanArgs)"
+& scancentral -url $ScanCentralCtrlUrl start -upload -uptoken $SSCAuthToken `
     -b $AppName -application $AppName -version $AppVersion -bt gradle -bf build.gradle `
     -email $ScanCentralEmail -block -o -f "$($AppName).fpr" `
     $($ScanArgs)
