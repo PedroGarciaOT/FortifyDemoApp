@@ -89,7 +89,7 @@ jobs:
         run: scancentral package "$BUILD_OPTS" -o $PACKAGE_FILE
         env:
           PACKAGE_FILE: "package.zip"
-          BUILD_OPTS: "-bt gradle -bf build.gradle -bc \"clean build\" -oss"
+          BUILD_OPTS: "-bt gradle -bf build.gradle -bc \"clean build\""
       - run: ls -l package.zip
 
       # Start Fortify on Demand SAST scan and wait until results complete. For more information on FoDUploader commands, see https://github.com/fod-dev/fod-uploader-java
