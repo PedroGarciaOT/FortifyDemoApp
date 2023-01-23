@@ -16,7 +16,7 @@
 # assistance with configuration, feel free to create a help ticket in the Fortify on Demand portal.                                            #
 ################################################################################################################################################
 
-name: Build and Security Scan
+name: Fortify on Demand Scan
 
 # TODO: Customize trigger events based on your DevSecOps processes and typical FoD SAST scan time
 on:
