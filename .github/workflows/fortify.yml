@@ -73,7 +73,7 @@ jobs:
       # Build and unit-test the application
       - run: touch .env
       - name: Build with Gradle
-        run: sh ./gradlew clean build
+        run: ./gradlew clean build
 
       # Prepare source+dependencies for upload. The default example is for a Maven project that uses pom.xml.
       # TODO: Update PACKAGE_OPTS based on the ScanCentral Client documentation for your project's included tech stack(s). Helpful hints:
@@ -86,18 +86,18 @@ jobs:
       - name: Download Fortify ScanCentral Client
         uses: fortify/gha-setup-scancentral-client@v2.2.2
       - name: Package Code + Dependencies
-        run: scancentral package -bt gradle -bf build.gradle -bc "clean build" -oss -o package.zip
+        run: scancentral package "$BUILD_OPTS" -o $PACKAGE_FILE
         env:
-            PACKAGE_OPTS: '-bt gradle -bf build.gradle -bc "clean build" -oss'
-            PACKAGE_FILE: "package.zip"
-      - run: cat /home/runner/.fortify/scancentral-22.1.0/log/scancentral.log
+          PACKAGE_FILE: "package.zip"
+          BUILD_OPTS: "-bt gradle -bf build.gradle -bc \"clean build\" -oss"
+      - run: ls -l package.zip
 
       # Start Fortify on Demand SAST scan and wait until results complete. For more information on FoDUploader commands, see https://github.com/fod-dev/fod-uploader-java
       # TODO: Update ENV variables for your application and create the necessary GitHub Secrets.  Helpful hints:
       #   Credentials and release ID should be obtained from your FoD tenant (either Personal Access Token or API Key can be used).
       #   Automated Audit preference should be configured for the release's Static Scan Settings in the Fortify on Demand portal.
       - name: Download Fortify on Demand Universal CI Tool
-        uses: fortify/gha-setup-fod-uploader@v1.1.1
+        uses: fortify/gha-setup-fod-uploader@v1.1.3
       - name: Perform SAST Scan
         run: java -jar $FOD_UPLOAD_JAR -z $PACKAGE_FILE -aurl $FOD_API_URL -purl $FOD_URL -rid "$FOD_RELEASE_ID" -tc "$FOD_TENANT" -uc "$FOD_USER" "$FOD_PAT" $FOD_UPLOADER_OPTS -n "$FOD_UPLOADER_NOTES"
         env:
