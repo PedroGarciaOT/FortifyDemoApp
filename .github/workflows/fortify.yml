@@ -88,7 +88,7 @@ jobs:
       - name: Package Code + Dependencies
         run: scancentral package $PACKAGE_OPTS -o $PACKAGE_FILE
         env:
-            PACKAGE_OPTS: "-bt gradle -bf build.gradle -bc 'clean build' -oss"
+            PACKAGE_OPTS: '-bt gradle -bf build.gradle -bc "clean build" -oss'
             PACKAGE_FILE: "package.zip"
       - run: ls -a
 
