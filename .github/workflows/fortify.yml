@@ -86,7 +86,7 @@ jobs:
       - name: Download Fortify ScanCentral Client
         uses: fortify/gha-setup-scancentral-client@v2.1.0
       - name: Package Code + Dependencies
-        run: scancentral package -bf gradle -bf build.gradle -bc "clean build" -oss -o package.zip
+        run: scancentral package -bt gradle -bf build.gradle -bc "clean build" -oss -o package.zip
         env:
             PACKAGE_OPTS: '-bt gradle -bf build.gradle -bc "clean build" -oss'
             PACKAGE_FILE: "package.zip"
