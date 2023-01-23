@@ -81,12 +81,13 @@ jobs:
       #   ScanCentral has additional options that should be set for PHP and Python projects
       #   For other build tools, add your build commands to download necessary dependencies and prepare according to Fortify on Demand Packaging documentation.
       #   ScanCentral Client documentation is located at https://www.microfocus.com/documentation/fortify-software-security-center/
+      #   Note the "-oss" option is required if initiating open source scan via Debricked.
       - name: Download Fortify ScanCentral Client
         uses: fortify/gha-setup-scancentral-client@v2.1.0
       - name: Package Code + Dependencies
         run: scancentral package $PACKAGE_OPTS -o $PACKAGE_FILE
         env:
-            PACKAGE_OPTS: "-bt gradle -bf build.gradle"
+            PACKAGE_OPTS: "-bt gradle -bf build.gradle -oss"
             PACKAGE_FILE: "package.zip"
             
       # Start Fortify on Demand SAST scan and wait until results complete. For more information on FoDUploader commands, see https://github.com/fod-dev/fod-uploader-java
