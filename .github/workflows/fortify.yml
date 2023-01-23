@@ -71,6 +71,7 @@ jobs:
           #cache: 'maven'
 
       # Build and unit-test the application
+      - run: touch .env
       - name: Build with Gradle
         run: ./gradlew clean build
 
