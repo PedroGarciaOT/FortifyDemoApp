@@ -1,0 +1,420 @@
+# DevSecOps workflow including Application Security Testing with Fortify ScanCentral (SAST/DAST) and Debricked
+
+name: DevSecOps with Fortify
+
+on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+  push:
+    paths-ignore:
+      - .github/workflows/**
+      - 'bin/**'
+      - 'data/**'
+      - 'etc/**'
+      - 'media/**'
+      - 'Jenkinsfile'
+      - 'README.md'
+      - 'LICENSE'
+    branches:
+      - '**'        # matches every branch
+  pull_request:
+    branches: [ main ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+    inputs:
+      runScanCentralSASTScan:
+        description: 'Carry out SAST scan using Fortify ScanCentral'
+        required: false
+        default: 'true'
+      runDebrickedScan:
+        description: 'Carry out SCA scan using Debricked'
+        required: false
+        default: 'true'
+      runScanCentralDASTScan:
+        description: 'Carry out DAST scan using Fortify ScanCentral'
+        required: false
+        default: 'false'
+
+# Global environment variables
+env:
+  APP_NAME: "FortifyDemoApp"
+  PARENT_APPVER_NAME: "main"
+  PACKAGE_FILE: "package.zip"
+  FCLI_VER: "dev_2.0.0-beta"
+  SCANCENTRAL_VER: "22.2.0"
+
+jobs:
+
+  Build-And-Test:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Checkout the code
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.3.0
+        with:
+          # Fetch at least the immediate parents so that if this is a pull request then we can checkout the head.
+          fetch-depth: 2
+      # If this run was triggered by a pull request event, then checkout the head of the pull request instead of the merge commit.
+      - run: git checkout HEAD^2
+        if: ${{ github.event_name == 'pull_request' }}
+
+      # Setup JDK 11 on host
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+          cache: 'gradle'
+
+      # Setup Gradle
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+
+      # Build / Test with Gradle
+      - name: Build with Gradle
+        run:  ./gradlew clean build
+
+  Debricked-SCA:
+    runs-on: ubuntu-latest
+    if: ${{ (github.event_name == 'push') || (github.event_name == 'pull_request') || (github.event.inputs.runDebrickedScan == 'true') }}
+
+    steps:
+      - uses: actions/checkout@v3.3.0
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '13'
+          cache: 'gradle'
+      - run: |
+          sh ./gradlew clean build copyDependencies -x test
+          sh ./gradlew dependencies > .debricked-gradle-dependencies.
+      - uses: debricked/vulnerable-functionality/java@v0
+        with:
+          path-to-compiled-files: 'build/classes'
+          path-to-library-files: 'build/dependencies'
+      - uses: debricked/actions/scan@v1
+        env:
+          DEBRICKED_TOKEN: ${{ secrets.DEBRICKED_TOKEN }}
+
+  Quality-Gate:
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    needs: [ Build-And-Test ]
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v3.3.0
+
+    # TBD
+
+  ScanCentral-SAST-Scan:
+    # Use the appropriate runner for building your source code.
+    # Use a Windows runner for .NET projects that use msbuild. Additional changes to RUN commands will be required to switch to Windows syntax.
+    runs-on: ubuntu-latest
+    if: ${{ (github.event_name == 'push') || (github.event_name == 'pull_request') || (github.event.inputs.runScanCentralSASTScan == 'true') }}
+
+    steps:
+      - name: Check Out Source Code
+        uses: actions/checkout@v3.3.0
+
+      # Setup JDK 11 on host
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+          cache: 'gradle'
+
+      # Setup Gradle
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+
+      # Get the branch name or pr number
+      - name: Extract branch name
+        shell: bash
+        run: |
+          if [[ $GITHUB_REF == *"refs/pull/"* ]]; then
+            BRANCH_NAME="$(echo ${GITHUB_REF#refs/pull/})"
+            PR_NUMBER="$(echo ${BRANCH_NAME%/merge})"
+            BRANCH_NAME="[PR]${SOURCE_BRANCH}#${PR_NUMBER}"
+          else
+            BRANCH_NAME="$(echo ${GITHUB_REF#refs/heads/})"
+          fi
+          echo "branch=${BRANCH_NAME}" >> $GITHUB_OUTPUT
+        env:
+          SOURCE_BRANCH: ${{ github.head_ref }}
+        id: extract_branch
+
+      # Install Fortify Command Line (fcli) tool
+      - name: Install fcli
+        shell: bash
+        run: |
+          mkdir -p $HOME/fcli/bin
+          curl -fsSL https://github.com/fortify-ps/fcli/releases/download/${FCLI_VER}/fcli-linux.tgz | tar -zxvf - -C $HOME/fcli/bin
+          echo "::debug::PATH=$HOME/fcli/bin"
+          echo "$HOME/fcli/bin" >> $GITHUB_PATH
+
+      # Login to Fortify SSC fcli session
+      - name: Login fcli
+        shell: bash
+        run: |
+          fcli --version
+          fcli ssc session login --url $SSC_URI --ci-token $SSC_CI_TOKEN github-actions
+        env:
+          SSC_URI: ${{ vars.SSC_URI }}
+          SSC_CI_TOKEN: ${{ secrets.SSC_CI_TOKEN }}
+          #CLIENT_AUTH_TOKEN: ${{ secrets.CLIENT_AUTH_TOKEN }}
+
+      # Create SSC application version for GitHub branch - if it doesn't already exist
+      - name: Create SSC application version
+        shell: bash
+        run: |
+          APPVERID=$(fcli ssc appversion create ${SSC_APP_NAME}:${SSC_APPVER_NAME} --description "Created automatically from GitHub" --issue-template ${SSC_ISSUE_TEMPLATE} --auto-required-attrs --skip-if-exists -o expr="{releaseId}" --session github-actions)
+          echo "SSC_APPVER_ID=${APPVERID}"
+          echo "SSC_APPVER_ID=${APPVERID}" >> $GITHUB_OUTPUT
+        id: create_ssc_appversion
+        env:
+          SSC_APP_NAME: ${APP_NAME}
+          SSC_APPVER_NAME: ${APPVER_NAME}
+          SSC_ISSUE_TEMPLATE: "Prioritized-LowRisk-Project-Template"
+          #FOD_RELEASE_NAME: ${{ steps.extract_branch.outputs.branch }}
+          #FOD_PARENT_RELEASE_NAME: "main"
+
+      # Prepare source+dependencies for upload. The default example is for a Maven project that uses pom.xml.
+      # Update PACKAGE_OPTS based on the ScanCentral Client documentation for your project's included tech stack(s). Helpful hints:
+      #   ScanCentral Client will download dependencies for maven (-bt mvn) and gradle (-bt gradle).
+      #   ScanCentral Client can download dependencies for msbuild projects (-bt msbuild); however, you must convert the workflow to use a Windows runner.
+      #   ScanCentral has additional options that should be set for PHP and Python projects
+      #   For other build tools, add your build commands to download necessary dependencies and prepare according to Fortify ScanCentral Packaging documentation.
+      #   ScanCentral Client documentation is located at https://www.microfocus.com/documentation/fortify-software-security-center/
+      - name: Download and run Fortify ScanCentral Client
+        uses: fortify/gha-setup-scancentral-client@v2.2.2
+        with:
+          version: 22.2.0
+      - name: Package Code + Dependencies
+        run: scancentral package -bt gradle -bf build.gradle -bc "clean build -x test" -o $PACKAGE_FILE
+        env:
+          PACKAGE_FILE: "package.zip"
+
+      # Start ScanCentral SAST scan and wait for completion
+      - name: Run ScanCentral SAST Scan
+        shell: bash
+        run: |
+          fcli --version
+          fcli sc-sast session login --ssc-url $SSC_URI --ssc-ci-token $SSC_CI_TOKEN --client-auth-token $CLIENT_AUTH_TOKEN sc-sast-github-actions
+          fcli sc-sast scan start --sensor-version $SSC_SENSOR_VER --appversion "${SSC_APPVER_NAME}" -p "${PACKAGE_FILE}" --store curScan --session sc-sast-github-actions
+          fcli sc-sast scan wait-for ::curScan:: -i 5s -t --session sc-sast-github-actions
+          fcli sc-sast session logout sc-sast-github-actions
+        env:
+          SSC_URI: ${{ vars.SSC_URI }}
+          SSC_CI_TOKEN: ${{ secrets.SSC_CI_TOKEN }}
+          SSC_APPVER_NAME: ${{ format('{0}:{1}', env.SSC_APP_NAME, steps.extract_branch.outputs.branch) }}
+          PACKAGE_FILE: "package.zip"
+          CLIENT_AUTH_TOKEN: ${{ secrets.CLIENT_AUTH_TOKEN }}
+          SSC_SENSOR_VER: ${SCANCENTRAL_VERSION}
+
+      # FOR DEBUG - Save ScanCentral log file
+      - uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: scancentral1.log
+          path: ~/.fortify/scancentral-22.2.0/log/scancentral.log
+          #    retention-days: 5
+
+      # FOR DEBUG - Save package.zip
+      #- name: 'Upload Artifact'
+      #  uses: actions/upload-artifact@v3
+      #  with:
+      #    name: package.zip
+      #    path: package.zip
+      #    retention-days: 5
+
+      # Start Fortify ScanCentral SAST scan and wait until results complete.
+      - name: Perform SAST scan
+        shell: bash
+        run: |
+          fcli --version
+          fcli sc-sast session login --ssc-url $SSC_URI --ssc-ci-token $SSC_CI_TOKEN --client-auth-token $CLIENT_AUTH_TOKEN github-actions
+          fcli sc-sast scan start --sensor-version $SSC_SENSOR_VER --appversion ${SSC_APP_NAME}:${SSC_APPVER_NAME} -p ${PACKAGE_FILE} --store '?' --session github-actions
+          sleep 5
+          fcli sc-sast scan wait-for ::?:: -i 5s -t --session github-actions
+          fcli sc-sast session logout github-actions
+        id: perform_sast_scan
+        env:
+          PACKAGE_FILE: "package.zip"
+          SSC_APP_NAME: ${SSC_APP_NAME}
+          #SSC_APPVER_NAME: ${{ format('{0}:{1}', env.SSC_APP_NAME, steps.extract_branch.outputs.branch) }}
+          #SCANCENTRAL_SCAN_NOTES: "Triggered by GitHub Actions (${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+          SSC_URI: ${{ vars.SSC_URI }}
+          SSC_CI_TOKEN: ${{ secrets.SSC_CI_TOKEN }}
+          CLIENT_AUTH_TOKEN: ${{ secrets.CLIENT_AUTH_TOKEN }}
+          SSC_SENSOR_VERSION: ${SCANCENTRAL_VERSION}
+
+      # Pull SAST issues from Fortify ScanCentral and generate GitHub-optimized SARIF output
+      - name: Export Results
+        uses: fortify/gha-export-vulnerabilities@v1
+        with:
+          fod_base_url: ${{ secrets.FOD_BASE_URL }}
+          fod_client_id: ${{ secrets.FOD_CLIENT_ID }}
+          fod_client_secret: ${{ secrets.FOD_CLIENT_SECRET }}
+          fod_release_name: ${{ format('{0}:{1}', env.APP_NAME, steps.extract_branch.outputs.branch) }}
+
+      # Check if SARIF output file has been created
+      - name: Check file existence
+        id: check_files_fod
+        uses: andstor/file-existence-action@v2
+        with:
+          files: "./gh-fortify-sast.sarif"
+
+      # Import Fortify SAST results to GitHub Security Code Scanning
+      - name: Import Results
+        if: steps.check_files_fod.outputs.files_exists == 'true'
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: ./gh-fortify-sast.sarif
+
+      # Logout/Close Fortify ScanCentral fcli session
+      - name: Logout fcli
+        shell: bash
+        run: |
+          fcli sc-sast session logout github-actions
+
+  ScanCentral-DAST-Scan:
+    runs-on: ubuntu-latest
+    if: ${{ (github.event.inputs.runScanCentralDASTScan == 'true') }}
+
+    steps:
+      - name: Check Out Source Code
+        uses: actions/checkout@v3.3.0
+
+      # Setup JDK 11 on host
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+          cache: 'gradle'
+
+      # Setup Gradle
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+
+      # Get the branch name or pr number
+      - name: Extract branch name
+        shell: bash
+        run: |
+          if [[ $GITHUB_REF == *"refs/pull/"* ]]; then
+            BRANCH_NAME="$(echo ${GITHUB_REF#refs/pull/})"
+            PR_NUMBER="$(echo ${BRANCH_NAME%/merge})"
+            BRANCH_NAME="[PR]${SOURCE_BRANCH}#${PR_NUMBER}"
+          else
+            BRANCH_NAME="$(echo ${GITHUB_REF#refs/heads/})"
+          fi
+          echo "branch=${BRANCH_NAME}" >> $GITHUB_OUTPUT
+        env:
+          SOURCE_BRANCH: ${{ github.head_ref }}
+        id: extract_branch
+
+      # Install Fortify Command Line (fcli) tool
+      - name: Install fcli
+        shell: bash
+        run: |
+          mkdir -p $HOME/fcli/bin
+          curl -fsSL https://github.com/fortify-ps/fcli/releases/download/${FCLI_VER}/fcli-linux.tgz | tar -zxvf - -C $HOME/fcli/bin
+          echo "$HOME/fcli/bin" >> $GITHUB_PATH
+
+      # Login to Fortify ScanCentral fcli session
+      - name: Login fcli
+        shell: bash
+        run: |
+          fcli --version
+          fcli sc-sast session login --ssc-url $SSC_URI --ssc-ci-token $SSC_CI_TOKEN --client-auth-token $CLIENT_AUTH_TOKEN github-actions
+        env:
+          SSC_URI: ${{ vars.SSC_URI }}
+          SSC_CI_TOKEN: ${{ secrets.SSC_CI_TOKEN }}
+          CLIENT_AUTH_TOKEN: ${{ secrets.CLIENT_AUTH_TOKEN }}
+
+  Security-Gate:
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    needs: [ Debricked-SCA,ScanCentral-SAST-Scan,ScanCentral-DAST-Scan ]
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - name: Check Out Source Code
+        uses: actions/checkout@v3.3.0
+
+      # Setup JDK 11 on host
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+          cache: 'gradle'
+
+      # Setup Gradle
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+
+      # Get the branch name or pr number
+      - name: Extract branch name
+        shell: bash
+        run: |
+          if [[ $GITHUB_REF == *"refs/pull/"* ]]; then
+            BRANCH_NAME="$(echo ${GITHUB_REF#refs/pull/})"
+            PR_NUMBER="$(echo ${BRANCH_NAME%/merge})"
+            BRANCH_NAME="[PR]${SOURCE_BRANCH}#${PR_NUMBER}"
+          else
+            BRANCH_NAME="$(echo ${GITHUB_REF#refs/heads/})"
+          fi
+          echo "branch=${BRANCH_NAME}" >> $GITHUB_OUTPUT
+        env:
+          SOURCE_BRANCH: ${{ github.head_ref }}
+        id: extract_branch
+
+      # Install Fortify Command Line (fcli) tool
+      - name: Install fcli
+        shell: bash
+        run: |
+          mkdir -p $HOME/fcli/bin
+          curl -fsSL https://github.com/fortify-ps/fcli/releases/download/${FCLI_VER}/fcli-linux.tgz | tar -zxvf - -C $HOME/fcli/bin
+          echo "::debug::PATH=$HOME/fcli/bin"
+          echo "$HOME/fcli/bin" >> $GITHUB_PATH
+
+      # Login to Fortify ScanCentral fcli session
+      - name: Login fcli
+        shell: bash
+        run: |
+          fcli --version
+          fcli sc-sast session login --ssc-url $SSC_URI --ssc-ci-token $SSC_CI_TOKEN --client-auth-token $CLIENT_AUTH_TOKEN github-actions
+        env:
+          SSC_URI: ${{ vars.SSC_URI }}
+          SSC_CI_TOKEN: ${{ secrets.SSC_CI_TOKEN }}
+          CLIENT_AUTH_TOKEN: ${{ secrets.CLIENT_AUTH_TOKEN }}
+
+      # Run script to check the Security Policy of the Fortify ScanCentral Release to determine success/failure
+      - name: Verify Security Policy
+        shell: bash
+        run: |
+          fcli fod release get ${APP_NAME}:${FOD_RELEASE_NAME} -o expr="Critical:\t{critical}\nHigh:\t\t{high}\nMedium:\t\t{medium}\nLow:\t\t{low}" --session github-actions
+          if [ $(fcli fod release get ${APP_NAME}:${FOD_RELEASE_NAME} -o expr="{isPassed}" --session github-actions) = 'true' ]; then echo "Security policy: passed"; else echo "Security policy: failed"; fi
+        id: verify_security_policy
+        env:
+          FOD_RELEASE_NAME: ${{ steps.extract_branch.outputs.branch }}
+
+      # Logout/Close Fortify ScanCentral fcli session
+      - name: Logout fcli
+        shell: bash
+        run: |
+          fcli sc-sast session logout github-actions
+
+  Release-Gate:
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    needs: [ Quality-Gate, Security-Gate ]
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - name: Check Out Source Code
+        uses: actions/checkout@v3.3.0
+
+    # TBD

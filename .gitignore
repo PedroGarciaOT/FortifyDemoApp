@@ -36,3 +36,5 @@ build
 .fpr
 .pdf
 /vulnerabilities.txt
+/FortifyDemoApp.fpr
+/FortifyDemoApp.pdf

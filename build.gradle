@@ -107,6 +107,12 @@ task writeClasspath() {
     }
 }
 
+task copyDependencies(dependsOn: 'jar', type: Copy) {
+    def conf = configurations.runtimeClasspath
+    from conf.allDependencies.collect { conf.files(it) }
+    into "${project.buildDir}/dependencies"
+}
+
 tasks.named('wrapper') {
     distributionType = Wrapper.DistributionType.ALL
 }
