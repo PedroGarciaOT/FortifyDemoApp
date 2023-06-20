@@ -126,7 +126,8 @@ jobs:
           more appver.txt
           echo "${SSC_APPVER_NAME}"
           echo "${SSC_ISSUE_TEMPLATE}"
-          fcli ssc appversion list --session github-actions
+          fcli ssc app list --session github-actions
+          fcli ssc appversion create "${SSC_APPVER_NAME}" --description "Created automatically from GitHub" --issue-template "${SSC_ISSUE_TEMPLATE}" --auto-required-attrs --skip-if-exists --session github-actions
           APPVERID=$(fcli ssc appversion create "${SSC_APPVER_NAME}" --description "Created automatically from GitHub" --issue-template "${SSC_ISSUE_TEMPLATE}" --auto-required-attrs --skip-if-exists -o expr="{id}" --session github-actions)
           fcli ssc session logout github-actions
           echo "SSC_APPVER_ID=${APPVERID}"
