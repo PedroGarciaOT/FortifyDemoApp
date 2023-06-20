@@ -159,6 +159,7 @@ jobs:
           APPVERID=$(fcli state var contents curRel -o expr="{id}")
           echo "SSC_APPVER_ID=${APPVERID}"
           echo "SSC_APPVER_ID=${APPVERID}" >> $GITHUB_OUTPUT
+          fcli ssc session logout --no-revoke-token github-actions
         id: create_ssc_appversion
         env:
           SSC_URI: ${{ vars.SSC_URI }}
@@ -279,7 +280,7 @@ jobs:
           fcli sc-sast session login --ssc-url $SSC_URI --ssc-ci-token $SSC_CI_TOKEN --client-auth-token $CLIENT_AUTH_TOKEN github-actions
           fcli sc-sast scan start --sensor-version $SSC_SENSOR_VER --appversion "${SSC_APPVER_NAME}" -p "${PACKAGE_FILE}" --store curScan --session github-actions
           fcli sc-sast scan wait-for ::curScan:: -i 5s -t 1h --session github-actions
-          fcli sc-sast session logout github-actions
+          fcli sc-sast session logout --no-revoke-token github-actions
         env:
           SSC_URI: ${{ vars.SSC_URI }}
           SSC_CI_TOKEN: ${{ secrets.SSC_CI_TOKEN }}
@@ -383,7 +384,7 @@ jobs:
           fcli sc-dast session login --ssc-url $SSC_URI --ssc-ci-token $SSC_CI_TOKEN github-actions
           fcli sc-dast scan start --settings "${SCDAST_SETTINGS_ID}" --store curScan --session github-actions "${SCAN_NAME}"
           fcli sc-dast scan wait-for ::curScan:: -i 5s -t 4h --session github-actions
-          fcli sc-dast session logout github-actions
+          fcli sc-dast session logout --no-revoke-token github-actions
         env:
           SSC_URI: ${{ vars.SSC_URI }}
           SSC_CI_TOKEN: ${{ secrets.SSC_CI_TOKEN }}
@@ -455,6 +456,7 @@ jobs:
           fcli ssc session login --url $SSC_URI --ci-token $SSC_CI_TOKEN github-actions
           fcli ssc appversion-vuln count --appversion="${SSC_APPVER_NAME}" --session github-actions
           if [ $(fcli ssc appversion-vuln count --appversion="${SSC_APPVER_NAME}" -q 'cleanName matches "Critical"' -o expr="{totalCount}" --session github-actions) -gt "${MAX_CRITICAL_COUNT}" ]; then echo "Security policy: failed"; else echo "Security policy: passed"; fi
+          fcli ssc session logout --no-revoke-token github-actions
         id: verify_security_policy
         env:
           SSC_URI: ${{ vars.SSC_URI }}
