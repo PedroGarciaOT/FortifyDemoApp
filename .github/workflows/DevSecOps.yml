@@ -201,11 +201,21 @@ jobs:
       - uses: debricked/actions/scan@v1
         env:
           DEBRICKED_TOKEN: ${{ secrets.DEBRICKED_TOKEN }}
+      - name: Install fcli
+        shell: bash
+        run: |
+          mkdir -p $HOME/fcli/bin
+          curl -fsSL https://github.com/fortify-ps/fcli/releases/download/${FCLI_VER}/fcli-linux.tgz | tar -zxvf - -C $HOME/fcli/bin
+          echo "::debug::PATH=$HOME/fcli/bin"
+          echo "$HOME/fcli/bin" >> $GITHUB_PATH
       - name: Export Debricked to SSC
         shell: bash
         run: |
-          echo ${env.BRANCH_NAME}
-          echo "APP_VER_ID=${SSC_APPVERID}"
+          echo ${{needs.Verify-SSC-Environment.outputs.branch}}
+          echo ${{needs.Verify-SSC-Environment.outputs.appverid}}
+          echo "SSC_APPVER_ID=${env.SSC_APPVER_ID}"
+        env:
+          SSC_APPVER_ID: ${{needs.Verify-SSC-Environment.outputs.appverid}}
 
   Quality-Gate:
     runs-on: ubuntu-latest
