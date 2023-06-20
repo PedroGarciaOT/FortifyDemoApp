@@ -83,6 +83,7 @@ jobs:
 
   Deploy-to-Azure:
     runs-on: ubuntu-latest
+    needs: [Build-And-Test]
 
     steps:
       - uses: actions/checkout@v3.3.0
@@ -102,12 +103,12 @@ jobs:
           envKey_AZURE_APP_NAME: ${{ vars.AZURE_APP_NAME }}
           envKey_AZURE_REGION: ${{ vars.AZURE_REGION }}
 
-      - uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      #- uses: azure/login@v1
+      #  with:
+      #    creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - run: |
-          az webapp list --query "[?state=='Running']"
+      #- run: |
+      #    az webapp list --query "[?state=='Running']"
 
     # TBD
 
@@ -153,10 +154,9 @@ jobs:
         run: |
           fcli ssc session login --url $SSC_URI --ci-token $SSC_CI_TOKEN github-actions
           echo "${SSC_APPVER_NAME}"
-          echo "${SSC_ISSUE_TEMPLATE}"
           fcli ssc app list --session github-actions
           fcli ssc appversion create "${SSC_APPVER_NAME}" --description "Created automatically from GitHub" --issue-template "${SSC_ISSUE_TEMPLATE}" --auto-required-attrs --skip-if-exists --store curRel --session github-actions
-          APPVERID=$(fcli state var contents curRel -o expr="{id}" --session github-actions)
+          APPVERID=$(fcli state var contents curRel -o expr="{id}")
           echo "SSC_APPVER_ID=${APPVERID}"
           echo "SSC_APPVER_ID=${APPVERID}" >> $GITHUB_OUTPUT
         id: create_ssc_appversion
