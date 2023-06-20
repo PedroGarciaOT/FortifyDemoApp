@@ -63,13 +63,19 @@ jobs:
       # Setup JDK 11 on host
       - uses: actions/setup-java@v3
         with:
-          distribution: 'temurin'
+          distribution: 'zulu'
           java-version: '11'
           cache: 'gradle'
 
       # Setup Gradle
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
+
+      # Create .env file in case it is needed by scripts
+      - name: Create envfile
+        uses: SpicyPizza/create-envfile@v2.0
+        with:
+          envkey_DEBUG: false
 
       # Build / Test with Gradle
       - name: Build with Gradle
@@ -83,9 +89,12 @@ jobs:
       - uses: actions/checkout@v3.3.0
       - uses: actions/setup-java@v3
         with:
-          distribution: 'temurin'
-          java-version: '13'
+          distribution: 'zulu'
+          java-version: '11'
           cache: 'gradle'
+      - uses: SpicyPizza/create-envfile@v2.0
+        with:
+          envkey_DEBUG: false
       - run: |
           sh ./gradlew clean build copyDependencies -x test
           sh ./gradlew dependencies > .debricked-gradle-dependencies.
@@ -122,13 +131,19 @@ jobs:
       # Setup JDK 11 on host
       - uses: actions/setup-java@v3
         with:
-          distribution: 'temurin'
+          distribution: 'zulu'
           java-version: '11'
           cache: 'gradle'
 
       # Setup Gradle
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
+
+      # Create .env file in case it is needed by scripts
+      - name: Create envfile
+        uses: SpicyPizza/create-envfile@v2.0
+        with:
+          envkey_DEBUG: false
 
       # Get the branch name or pr number
       - name: Extract branch name
@@ -170,13 +185,13 @@ jobs:
       - name: Create SSC application version
         shell: bash
         run: |
-          APPVERID=$(fcli ssc appversion create ${SSC_APP_NAME}:${SSC_APPVER_NAME} --description "Created automatically from GitHub" --issue-template ${SSC_ISSUE_TEMPLATE} --auto-required-attrs --skip-if-exists -o expr="{releaseId}" --session github-actions)
+          APPVERID=$(fcli ssc appversion create "${SSC_APP_NAME}:${SSC_APPVER_NAME}" --description "Created automatically from GitHub" --issue-template ${SSC_ISSUE_TEMPLATE} --auto-required-attrs --skip-if-exists -o expr="{releaseId}" --session github-actions)
           echo "SSC_APPVER_ID=${APPVERID}"
           echo "SSC_APPVER_ID=${APPVERID}" >> $GITHUB_OUTPUT
         id: create_ssc_appversion
         env:
           SSC_APP_NAME: ${APP_NAME}
-          SSC_APPVER_NAME: ${APPVER_NAME}
+          SSC_APPVER_NAME: ${{ steps.extract_branch.outputs.branch }}
           SSC_ISSUE_TEMPLATE: "Prioritized-LowRisk-Project-Template"
           #FOD_RELEASE_NAME: ${{ steps.extract_branch.outputs.branch }}
           #FOD_PARENT_RELEASE_NAME: "main"
@@ -298,6 +313,12 @@ jobs:
       # Setup Gradle
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
+
+      # Create .env file in case it is needed by scripts
+      - name: Create envfile
+        uses: SpicyPizza/create-envfile@v2.0
+        with:
+          envkey_DEBUG: false
 
       # Get the branch name or pr number
       - name: Extract branch name
