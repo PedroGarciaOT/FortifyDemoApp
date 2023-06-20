@@ -81,6 +81,11 @@ jobs:
       - name: Build with Gradle
         run:  ./gradlew clean build
 
+  Deploy-to-Azure:
+    runs-on: ubuntu-latest
+
+    # TBD
+
   Verify-SSC-Environment:
     runs-on: ubuntu-latest
 
@@ -129,7 +134,7 @@ jobs:
           fcli ssc app list --session github-actions
           fcli ssc appversion create "${SSC_APPVER_NAME}" --description "Created automatically from GitHub" --issue-template "${SSC_ISSUE_TEMPLATE}" --auto-required-attrs --skip-if-exists --session github-actions
           APPVERID=$(fcli ssc appversion create "${SSC_APPVER_NAME}" --description "Created automatically from GitHub" --issue-template "${SSC_ISSUE_TEMPLATE}" --auto-required-attrs --skip-if-exists -o expr="{id}" --session github-actions)
-          fcli ssc session logout github-actions
+          #fcli ssc session logout github-actions
           echo "SSC_APPVER_ID=${APPVERID}"
           echo "SSC_APPVER_ID=${APPVERID}" >> $GITHUB_OUTPUT
         id: create_ssc_appversion
@@ -302,7 +307,7 @@ jobs:
   ScanCentral-DAST-Scan:
     runs-on: ubuntu-latest
     if: ${{ (github.event.inputs.runScanCentralDASTScan == 'true') }}
-    needs: [ Verify-SSC-Environment ]
+    needs: [ Verify-SSC-Environment, Deploy-To-Azure ]
 
     steps:
       - name: Check Out Source Code
