@@ -41,7 +41,7 @@ env:
   PARENT_APPVER_NAME: "main"
   PACKAGE_FILE: "package.zip"
   FCLI_VER: "dev_2.0.0-beta"
-  SCANCENTRAL_VER: "22.2.0"
+  SCANCENTRAL_VER: "23.1.0"
 
 jobs:
 
@@ -95,12 +95,16 @@ jobs:
       - uses: SpicyPizza/create-envfile@v2.0
         with:
           envkey_DEBUG: false
-      - run: |
-          sh ./gradlew clean build copyDependencies -x test
-          sh ./gradlew dependencies > .debricked-gradle-dependencies.
+        shell: bash
+          run: |
+            ./gradlew clean build copyDependencies -x test
+            ./gradlew dependencies > .debricked-gradle-dependencies.
+            ls build
+            ls build/classes/java
+            ls build/dependencies
       - uses: debricked/vulnerable-functionality/java@v0
         with:
-          path-to-compiled-files: 'build/classes'
+          path-to-compiled-files: 'build/classes/java'
           path-to-library-files: 'build/dependencies'
       - uses: debricked/actions/scan@v1
         env:
@@ -170,43 +174,31 @@ jobs:
           echo "::debug::PATH=$HOME/fcli/bin"
           echo "$HOME/fcli/bin" >> $GITHUB_PATH
 
-      # Login to Fortify SSC fcli session
-      - name: Login fcli
-        shell: bash
-        run: |
-          fcli --version
-          fcli ssc session login --url $SSC_URI --ci-token $SSC_CI_TOKEN github-actions
-        env:
-          SSC_URI: ${{ vars.SSC_URI }}
-          SSC_CI_TOKEN: ${{ secrets.SSC_CI_TOKEN }}
-          #CLIENT_AUTH_TOKEN: ${{ secrets.CLIENT_AUTH_TOKEN }}
-
       # Create SSC application version for GitHub branch - if it doesn't already exist
       - name: Create SSC application version
         shell: bash
         run: |
-          APPVERID=$(fcli ssc appversion create "${SSC_APP_NAME}:${SSC_APPVER_NAME}" --description "Created automatically from GitHub" --issue-template ${SSC_ISSUE_TEMPLATE} --auto-required-attrs --skip-if-exists -o expr="{releaseId}" --session github-actions)
+          fcli ssc session login --url $SSC_URI --ci-token $SSC_CI_TOKEN github-actions
+          echo "${SSC_APP_NAME}:${SSC_APPVER_NAME}"
+          echo "${SSC_ISSUE_TEMPLATE}"
+          fcli ssc appversion list --session github-actions
+          APPVERID=$(fcli ssc appversion create "${SSC_APP_NAME}:${SSC_APPVER_NAME}" --description "Created automatically from GitHub" --issue-template "${SSC_ISSUE_TEMPLATE}" --auto-required-attrs --skip-if-exists -o expr="{id}" --session github-actions)
+          fcli ssc session logout github-actions
           echo "SSC_APPVER_ID=${APPVERID}"
           echo "SSC_APPVER_ID=${APPVERID}" >> $GITHUB_OUTPUT
         id: create_ssc_appversion
         env:
+          SSC_URI: ${{ vars.SSC_URI }}
+          SSC_CI_TOKEN: ${{ secrets.SSC_CI_TOKEN }}
           SSC_APP_NAME: ${APP_NAME}
           SSC_APPVER_NAME: ${{ steps.extract_branch.outputs.branch }}
           SSC_ISSUE_TEMPLATE: "Prioritized-LowRisk-Project-Template"
-          #FOD_RELEASE_NAME: ${{ steps.extract_branch.outputs.branch }}
-          #FOD_PARENT_RELEASE_NAME: "main"
 
-      # Prepare source+dependencies for upload. The default example is for a Maven project that uses pom.xml.
-      # Update PACKAGE_OPTS based on the ScanCentral Client documentation for your project's included tech stack(s). Helpful hints:
-      #   ScanCentral Client will download dependencies for maven (-bt mvn) and gradle (-bt gradle).
-      #   ScanCentral Client can download dependencies for msbuild projects (-bt msbuild); however, you must convert the workflow to use a Windows runner.
-      #   ScanCentral has additional options that should be set for PHP and Python projects
-      #   For other build tools, add your build commands to download necessary dependencies and prepare according to Fortify ScanCentral Packaging documentation.
-      #   ScanCentral Client documentation is located at https://www.microfocus.com/documentation/fortify-software-security-center/
+      # Prepare source+dependencies for upload using "scancentral package"
       - name: Download and run Fortify ScanCentral Client
-        uses: fortify/gha-setup-scancentral-client@v2.2.2
+        uses: fortify/gha-setup-scancentral-client@v2.3.0
         with:
-          version: 22.2.0
+          version: 23.1.0
       - name: Package Code + Dependencies
         run: scancentral package -bt gradle -bf build.gradle -bc "clean build -x test" -o $PACKAGE_FILE
         env:
@@ -216,26 +208,26 @@ jobs:
       - name: Run ScanCentral SAST Scan
         shell: bash
         run: |
-          fcli --version
-          fcli sc-sast session login --ssc-url $SSC_URI --ssc-ci-token $SSC_CI_TOKEN --client-auth-token $CLIENT_AUTH_TOKEN sc-sast-github-actions
-          fcli sc-sast scan start --sensor-version $SSC_SENSOR_VER --appversion "${SSC_APPVER_NAME}" -p "${PACKAGE_FILE}" --store curScan --session sc-sast-github-actions
-          fcli sc-sast scan wait-for ::curScan:: -i 5s -t --session sc-sast-github-actions
-          fcli sc-sast session logout sc-sast-github-actions
+          fcli sc-sast session login --ssc-url $SSC_URI --ssc-ci-token $SSC_CI_TOKEN --client-auth-token $CLIENT_AUTH_TOKEN github-actions
+          fcli sc-sast scan start --sensor-version $SSC_SENSOR_VER --appversion "${SSC_APPVER_NAME}" -p "${PACKAGE_FILE}" --store curScan --session github-actions
+          fcli sc-sast scan wait-for ::curScan:: -i 5s -t --session github-actions
+          fcli sc-sast session logout github-actions
         env:
           SSC_URI: ${{ vars.SSC_URI }}
           SSC_CI_TOKEN: ${{ secrets.SSC_CI_TOKEN }}
-          SSC_APPVER_NAME: ${{ format('{0}:{1}', env.SSC_APP_NAME, steps.extract_branch.outputs.branch) }}
+          SSC_APP_NAME: ${APP_NAME}
+          SSC_APPVER_NAME: ${{ format('{0}:{1}', env.APP_NAME, steps.extract_branch.outputs.branch) }}
           PACKAGE_FILE: "package.zip"
           CLIENT_AUTH_TOKEN: ${{ secrets.CLIENT_AUTH_TOKEN }}
           SSC_SENSOR_VER: ${SCANCENTRAL_VERSION}
 
       # FOR DEBUG - Save ScanCentral log file
-      - uses: actions/upload-artifact@v3
-        if: failure()
-        with:
-          name: scancentral1.log
-          path: ~/.fortify/scancentral-22.2.0/log/scancentral.log
-          #    retention-days: 5
+      #- uses: actions/upload-artifact@v3
+      #  if: failure()
+      #  with:
+      #    name: scancentral1.log
+      #    path: ~/.fortify/scancentral-23.1.0/log/scancentral.log
+      #    retention-days: 5
 
       # FOR DEBUG - Save package.zip
       #- name: 'Upload Artifact'
@@ -245,55 +237,27 @@ jobs:
       #    path: package.zip
       #    retention-days: 5
 
-      # Start Fortify ScanCentral SAST scan and wait until results complete.
-      - name: Perform SAST scan
-        shell: bash
-        run: |
-          fcli --version
-          fcli sc-sast session login --ssc-url $SSC_URI --ssc-ci-token $SSC_CI_TOKEN --client-auth-token $CLIENT_AUTH_TOKEN github-actions
-          fcli sc-sast scan start --sensor-version $SSC_SENSOR_VER --appversion ${SSC_APP_NAME}:${SSC_APPVER_NAME} -p ${PACKAGE_FILE} --store '?' --session github-actions
-          sleep 5
-          fcli sc-sast scan wait-for ::?:: -i 5s -t --session github-actions
-          fcli sc-sast session logout github-actions
-        id: perform_sast_scan
-        env:
-          PACKAGE_FILE: "package.zip"
-          SSC_APP_NAME: ${SSC_APP_NAME}
-          #SSC_APPVER_NAME: ${{ format('{0}:{1}', env.SSC_APP_NAME, steps.extract_branch.outputs.branch) }}
-          #SCANCENTRAL_SCAN_NOTES: "Triggered by GitHub Actions (${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
-          SSC_URI: ${{ vars.SSC_URI }}
-          SSC_CI_TOKEN: ${{ secrets.SSC_CI_TOKEN }}
-          CLIENT_AUTH_TOKEN: ${{ secrets.CLIENT_AUTH_TOKEN }}
-          SSC_SENSOR_VERSION: ${SCANCENTRAL_VERSION}
-
       # Pull SAST issues from Fortify ScanCentral and generate GitHub-optimized SARIF output
       - name: Export Results
-        uses: fortify/gha-export-vulnerabilities@v1
+        uses: fortify/gha-export-vulnerabilities@v1.0.2
         with:
-          fod_base_url: ${{ secrets.FOD_BASE_URL }}
-          fod_client_id: ${{ secrets.FOD_CLIENT_ID }}
-          fod_client_secret: ${{ secrets.FOD_CLIENT_SECRET }}
-          fod_release_name: ${{ format('{0}:{1}', env.APP_NAME, steps.extract_branch.outputs.branch) }}
+          ssc_base_url: ${{ vars.SSC_URI }}
+          ssc_auth_token: ${{ secrets.SSC_CI_TOKEN }}
+          ssc_version_name: ${{ format('{0}:{1}', env.APP_NAME, steps.extract_branch.outputs.branch) }}
 
       # Check if SARIF output file has been created
       - name: Check file existence
-        id: check_files_fod
+        id: check_files_sarif
         uses: andstor/file-existence-action@v2
         with:
           files: "./gh-fortify-sast.sarif"
 
       # Import Fortify SAST results to GitHub Security Code Scanning
       - name: Import Results
-        if: steps.check_files_fod.outputs.files_exists == 'true'
+        if: steps.check_files_sarif.outputs.files_exists == 'true'
         uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: ./gh-fortify-sast.sarif
-
-      # Logout/Close Fortify ScanCentral fcli session
-      - name: Logout fcli
-        shell: bash
-        run: |
-          fcli sc-sast session logout github-actions
 
   ScanCentral-DAST-Scan:
     runs-on: ubuntu-latest
@@ -344,16 +308,21 @@ jobs:
           curl -fsSL https://github.com/fortify-ps/fcli/releases/download/${FCLI_VER}/fcli-linux.tgz | tar -zxvf - -C $HOME/fcli/bin
           echo "$HOME/fcli/bin" >> $GITHUB_PATH
 
-      # Login to Fortify ScanCentral fcli session
-      - name: Login fcli
+      # Start ScanCentral DAST scan and wait for completion
+      - name: Run ScanCentral DAST Scan
         shell: bash
         run: |
-          fcli --version
-          fcli sc-sast session login --ssc-url $SSC_URI --ssc-ci-token $SSC_CI_TOKEN --client-auth-token $CLIENT_AUTH_TOKEN github-actions
+          fcli sc-dast session login --ssc-url $SSC_URI --ssc-ci-token $SSC_CI_TOKEN github-actions
+          fcli sc-dast scan start --settings "${SCDAST_SETTINGS_ID}" --store curScan --session github-actions "${SCAN_NAME}"
+          fcli sc-dast scan wait-for ::curScan:: -i 5s -t --session github-actions
+          fcli sc-dast session logout github-actions
         env:
           SSC_URI: ${{ vars.SSC_URI }}
           SSC_CI_TOKEN: ${{ secrets.SSC_CI_TOKEN }}
-          CLIENT_AUTH_TOKEN: ${{ secrets.CLIENT_AUTH_TOKEN }}
+          SSC_APP_NAME: ${APP_NAME}
+          SCDAST_SETTINGS_ID: $ {{ vars.SCDAST_SETTINGS_ID }}
+          SCAN_NAME: ${{ format('GHA_Scan_{0}:{1}', env.APP_NAME, steps.extract_branch.outputs.branch) }}
+
 
   Security-Gate:
     runs-on: ubuntu-latest
@@ -416,17 +385,17 @@ jobs:
       - name: Verify Security Policy
         shell: bash
         run: |
-          fcli fod release get ${APP_NAME}:${FOD_RELEASE_NAME} -o expr="Critical:\t{critical}\nHigh:\t\t{high}\nMedium:\t\t{medium}\nLow:\t\t{low}" --session github-actions
-          if [ $(fcli fod release get ${APP_NAME}:${FOD_RELEASE_NAME} -o expr="{isPassed}" --session github-actions) = 'true' ]; then echo "Security policy: passed"; else echo "Security policy: failed"; fi
+          fcli ssc session login --url $SSC_URI --ci-token $SSC_CI_TOKEN github-actions
+          fcli ssc appversion-vuln count --appversion="${SSC_APP_NAME}:${SSC_APPVER_NAME}"
+          if [ $(fcli ssc appversion-vuln count --appversion="${SSC_APP_NAME}:${SSC_APPVER_NAME}" -q 'cleanName matches "Critical"' -o expr="{totalCount}" --session github-actions) -gt "${MAX_CRITICAL_COUNT}" ]; then echo "Security policy: failed"; else echo "Security policy: passed"; fi
+          fcli ssc session logout github-actions
         id: verify_security_policy
         env:
-          FOD_RELEASE_NAME: ${{ steps.extract_branch.outputs.branch }}
-
-      # Logout/Close Fortify ScanCentral fcli session
-      - name: Logout fcli
-        shell: bash
-        run: |
-          fcli sc-sast session logout github-actions
+          SSC_URI: ${{ vars.SSC_URI }}
+          SSC_CI_TOKEN: ${{ secrets.SSC_CI_TOKEN }}
+          SSC_APP_NAME: ${APP_NAME}
+          SSC_APPVER_NAME: ${{ steps.extract_branch.outputs.branch }}
+          MAX_CRITICAL_COUNT: 0
 
   Release-Gate:
     runs-on: ubuntu-latest
