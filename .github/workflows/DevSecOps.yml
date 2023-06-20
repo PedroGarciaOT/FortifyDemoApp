@@ -157,7 +157,6 @@ jobs:
         shell: bash
         run: |
           fcli ssc session login --url $SSC_URI --ci-token $SSC_CI_TOKEN github-actions
-          echo "${SSC_APPVER_NAME}"
           fcli ssc app list --session github-actions
           fcli ssc appversion create "${SSC_APPVER_NAME}" --description "Created automatically from GitHub" --issue-template "${SSC_ISSUE_TEMPLATE}" --auto-required-attrs --skip-if-exists --store curRel --session github-actions
           APPVERID=$(fcli state var contents curRel -o expr="{id}")
@@ -211,11 +210,17 @@ jobs:
       - name: Export Debricked to SSC
         shell: bash
         run: |
-          echo ${{needs.Verify-SSC-Environment.outputs.branch}}
-          echo ${{needs.Verify-SSC-Environment.outputs.appverid}}
-          echo "SSC_APPVER_ID=${env.SSC_APPVER_ID}"
+          echo "SSC_APPVER_ID = $SSC_APPVER_ID"
+          fcli ssc session login --url $SSC_URI --ci-token $SSC_CI_TOKEN github-actions
+          fcli ssc appversion-artifact import-debricked --appversion $SSC_APPVER_ID -t $DEBRICKED_TOKEN -f debricked.sbom -r $DEBRICKED_REPO -b $BRANCH_NAME 
+          fcli ssc session logout --no-revoke-token github-actions
         env:
+          SSC_URI: ${{ vars.SSC_URI }}
+          SSC_CI_TOKEN: ${{ secrets.SSC_CI_TOKEN }}
           SSC_APPVER_ID: ${{needs.Verify-SSC-Environment.outputs.appverid}}
+          BRANCH_NAME: ${{needs.Verify-SSC-Environment.outputs.branch}}
+          DEBRICKED_REPO: "fortify-presales/FortifyDemoApp"
+          DEBRICKED_TOKEN: ${{ secrets.DEBRICKED_TOKEN }}
 
   Quality-Gate:
     runs-on: ubuntu-latest
