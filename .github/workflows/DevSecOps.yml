@@ -211,7 +211,8 @@ jobs:
         shell: bash
         run: |
           fcli ssc session login --url $SSC_URI --ci-token $SSC_CI_TOKEN github-actions
-          fcli ssc appversion-artifact import-debricked --appversion $SSC_APPVER_ID -t $DEBRICKED_TOKEN -f debricked.sbom -r $DEBRICKED_REPO -b $BRANCH_NAME --session github-actions
+          fcli ssc appversion-artifact import-debricked --appversion $SSC_APPVER_ID -t $DEBRICKED_TOKEN -r "$DEBRICKED_REPO" -b "$BRANCH_NAME" --store curImport --session github-actions
+          fcli ssc appversion-artifact wait-for ::curImport:: -i 5s -t 1h --session github-actions
           fcli ssc session logout --no-revoke-token github-actions
         env:
           SSC_URI: ${{ vars.SSC_URI }}
