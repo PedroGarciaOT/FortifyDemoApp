@@ -191,7 +191,7 @@ jobs:
         env:
           SSC_URI: ${{ vars.SSC_URI }}
           SSC_CI_TOKEN: ${{ secrets.SSC_CI_TOKEN }}
-          SSC_APP_NAME: ${APP_NAME}
+          SSC_APP_NAME: ${env.APP_NAME}
           SSC_APPVER_NAME: ${{ steps.extract_branch.outputs.branch }}
           SSC_ISSUE_TEMPLATE: "Prioritized-LowRisk-Project-Template"
 
@@ -216,7 +216,7 @@ jobs:
         env:
           SSC_URI: ${{ vars.SSC_URI }}
           SSC_CI_TOKEN: ${{ secrets.SSC_CI_TOKEN }}
-          SSC_APP_NAME: ${APP_NAME}
+          SSC_APP_NAME: ${env.APP_NAME}
           SSC_APPVER_NAME: ${{ format('{0}:{1}', env.APP_NAME, steps.extract_branch.outputs.branch) }}
           PACKAGE_FILE: "package.zip"
           CLIENT_AUTH_TOKEN: ${{ secrets.CLIENT_AUTH_TOKEN }}
@@ -320,7 +320,7 @@ jobs:
         env:
           SSC_URI: ${{ vars.SSC_URI }}
           SSC_CI_TOKEN: ${{ secrets.SSC_CI_TOKEN }}
-          SSC_APP_NAME: ${APP_NAME}
+          SSC_APP_NAME: ${env.APP_NAME}
           SCDAST_SETTINGS_ID: $ {{ vars.SCDAST_SETTINGS_ID }}
           SCAN_NAME: ${{ format('GHA_Scan_{0}:{1}', env.APP_NAME, steps.extract_branch.outputs.branch) }}
 
@@ -387,14 +387,14 @@ jobs:
         shell: bash
         run: |
           fcli ssc session login --url $SSC_URI --ci-token $SSC_CI_TOKEN github-actions
-          fcli ssc appversion-vuln count --appversion="${SSC_APP_NAME}:${SSC_APPVER_NAME}"
+          fcli ssc appversion-vuln count --appversion="${SSC_APP_NAME}:${SSC_APPVER_NAME}" --session github-actions
           if [ $(fcli ssc appversion-vuln count --appversion="${SSC_APP_NAME}:${SSC_APPVER_NAME}" -q 'cleanName matches "Critical"' -o expr="{totalCount}" --session github-actions) -gt "${MAX_CRITICAL_COUNT}" ]; then echo "Security policy: failed"; else echo "Security policy: passed"; fi
           fcli ssc session logout github-actions
         id: verify_security_policy
         env:
           SSC_URI: ${{ vars.SSC_URI }}
           SSC_CI_TOKEN: ${{ secrets.SSC_CI_TOKEN }}
-          SSC_APP_NAME: ${APP_NAME}
+          SSC_APP_NAME: ${env.APP_NAME}
           SSC_APPVER_NAME: ${{ steps.extract_branch.outputs.branch }}
           MAX_CRITICAL_COUNT: 0
 
