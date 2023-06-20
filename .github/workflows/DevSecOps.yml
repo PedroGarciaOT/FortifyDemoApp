@@ -278,7 +278,7 @@ jobs:
         run: |
           fcli sc-sast session login --ssc-url $SSC_URI --ssc-ci-token $SSC_CI_TOKEN --client-auth-token $CLIENT_AUTH_TOKEN github-actions
           fcli sc-sast scan start --sensor-version $SSC_SENSOR_VER --appversion "${SSC_APPVER_NAME}" -p "${PACKAGE_FILE}" --store curScan --session github-actions
-          fcli sc-sast scan wait-for ::curScan:: -i 5s -t --session github-actions
+          fcli sc-sast scan wait-for ::curScan:: -i 5s -t 1h --session github-actions
           fcli sc-sast session logout github-actions
         env:
           SSC_URI: ${{ vars.SSC_URI }}
