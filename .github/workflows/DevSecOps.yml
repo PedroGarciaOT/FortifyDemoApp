@@ -76,10 +76,6 @@ jobs:
         uses: SpicyPizza/create-envfile@v2.0
         with:
           envkey_DEBUG: false
-          envKey_AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          envKey_AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
-          envKey_AZURE_APP_NAME: ${{ vars.AZURE_APP_NAME }}
-          envKey_AZURE_REGION: ${{ vars.AZURE_REGION }}
 
       # Build / Test with Gradle
       - name: Build with Gradle
@@ -95,6 +91,23 @@ jobs:
           distribution: 'zulu'
           java-version: '11'
           cache: 'gradle'
+
+      # Create .env file in case it is needed by scripts
+      - name: Create envfile
+        uses: SpicyPizza/create-envfile@v2.0
+        with:
+          envkey_DEBUG: false
+          envKey_AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          envKey_AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+          envKey_AZURE_APP_NAME: ${{ vars.AZURE_APP_NAME }}
+          envKey_AZURE_REGION: ${{ vars.AZURE_REGION }}
+
+      - uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - run: |
+          az webapp list --query "[?state=='Running']"
 
     # TBD
 
@@ -139,13 +152,11 @@ jobs:
         shell: bash
         run: |
           fcli ssc session login --url $SSC_URI --ci-token $SSC_CI_TOKEN github-actions
-          echo "${SSC_APPVER_NAME}" > appver.txt
-          more appver.txt
           echo "${SSC_APPVER_NAME}"
           echo "${SSC_ISSUE_TEMPLATE}"
           fcli ssc app list --session github-actions
-          fcli ssc appversion create "${SSC_APPVER_NAME}" --description "Created automatically from GitHub" --issue-template "${SSC_ISSUE_TEMPLATE}" --auto-required-attrs --skip-if-exists --session github-actions
-          APPVERID=$(fcli ssc appversion create "${SSC_APPVER_NAME}" --description "Created automatically from GitHub" --issue-template "${SSC_ISSUE_TEMPLATE}" --auto-required-attrs --skip-if-exists -o expr="{id}" --session github-actions)
+          fcli ssc appversion create "${SSC_APPVER_NAME}" --description "Created automatically from GitHub" --issue-template "${SSC_ISSUE_TEMPLATE}" --auto-required-attrs --skip-if-exists --store curRel --session github-actions
+          APPVERID=$(fcli state var contents curRel -o expr="{id}" --session github-actions)
           echo "SSC_APPVER_ID=${APPVERID}"
           echo "SSC_APPVER_ID=${APPVERID}" >> $GITHUB_OUTPUT
         id: create_ssc_appversion
