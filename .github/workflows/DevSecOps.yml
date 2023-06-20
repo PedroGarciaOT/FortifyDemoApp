@@ -81,6 +81,17 @@ jobs:
       - name: Build with Gradle
         run:  ./gradlew clean build
 
+  Verify-SSC-Environment:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3.3.0
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '11'
+          cache: 'gradle'
+
   Debricked-SCA:
     runs-on: ubuntu-latest
     if: ${{ (github.event_name == 'push') || (github.event_name == 'pull_request') || (github.event.inputs.runDebrickedScan == 'true') }}
@@ -180,10 +191,10 @@ jobs:
         shell: bash
         run: |
           fcli ssc session login --url $SSC_URI --ci-token $SSC_CI_TOKEN github-actions
-          echo "${SSC_APP_NAME}:${SSC_APPVER_NAME}"
+          echo "${SSC_APPVER_NAME}"
           echo "${SSC_ISSUE_TEMPLATE}"
           fcli ssc appversion list --session github-actions
-          APPVERID=$(fcli ssc appversion create "${SSC_APP_NAME}:${SSC_APPVER_NAME}" --description "Created automatically from GitHub" --issue-template "${SSC_ISSUE_TEMPLATE}" --auto-required-attrs --skip-if-exists -o expr="{id}" --session github-actions)
+          APPVERID=$(fcli ssc appversion create "${SSC_APPVER_NAME}" --description "Created automatically from GitHub" --issue-template "${SSC_ISSUE_TEMPLATE}" --auto-required-attrs --skip-if-exists -o expr="{id}" --session github-actions)
           fcli ssc session logout github-actions
           echo "SSC_APPVER_ID=${APPVERID}"
           echo "SSC_APPVER_ID=${APPVERID}" >> $GITHUB_OUTPUT
@@ -191,8 +202,7 @@ jobs:
         env:
           SSC_URI: ${{ vars.SSC_URI }}
           SSC_CI_TOKEN: ${{ secrets.SSC_CI_TOKEN }}
-          SSC_APP_NAME: ${{ env.APP_NAME }}
-          SSC_APPVER_NAME: ${{ steps.extract_branch.outputs.branch }}
+          SSC_APPVER_NAME: ${{ format('{0}:{1}', env.APP_NAME, steps.extract_branch.outputs.branch) }}
           SSC_ISSUE_TEMPLATE: "Prioritized-LowRisk-Project-Template"
 
       # Prepare source+dependencies for upload using "scancentral package"
@@ -216,7 +226,6 @@ jobs:
         env:
           SSC_URI: ${{ vars.SSC_URI }}
           SSC_CI_TOKEN: ${{ secrets.SSC_CI_TOKEN }}
-          SSC_APP_NAME: ${{ env.APP_NAME }}
           SSC_APPVER_NAME: ${{ format('{0}:{1}', env.APP_NAME, steps.extract_branch.outputs.branch) }}
           PACKAGE_FILE: "package.zip"
           CLIENT_AUTH_TOKEN: ${{ secrets.CLIENT_AUTH_TOKEN }}
@@ -320,7 +329,6 @@ jobs:
         env:
           SSC_URI: ${{ vars.SSC_URI }}
           SSC_CI_TOKEN: ${{ secrets.SSC_CI_TOKEN }}
-          SSC_APP_NAME: ${{ env.APP_NAME }}
           SCDAST_SETTINGS_ID: $ {{ vars.SCDAST_SETTINGS_ID }}
           SCAN_NAME: ${{ format('GHA_Scan_{0}:{1}', env.APP_NAME, steps.extract_branch.outputs.branch) }}
 
@@ -387,15 +395,14 @@ jobs:
         shell: bash
         run: |
           fcli ssc session login --url $SSC_URI --ci-token $SSC_CI_TOKEN github-actions
-          fcli ssc appversion-vuln count --appversion="${SSC_APP_NAME}:${SSC_APPVER_NAME}" --session github-actions
-          if [ $(fcli ssc appversion-vuln count --appversion="${SSC_APP_NAME}:${SSC_APPVER_NAME}" -q 'cleanName matches "Critical"' -o expr="{totalCount}" --session github-actions) -gt "${MAX_CRITICAL_COUNT}" ]; then echo "Security policy: failed"; else echo "Security policy: passed"; fi
+          fcli ssc appversion-vuln count --appversion="${SSC_APPVER_NAME}" --session github-actions
+          if [ $(fcli ssc appversion-vuln count --appversion=":${SSC_APPVER_NAME}" -q 'cleanName matches "Critical"' -o expr="{totalCount}" --session github-actions) -gt "${MAX_CRITICAL_COUNT}" ]; then echo "Security policy: failed"; else echo "Security policy: passed"; fi
           fcli ssc session logout github-actions
         id: verify_security_policy
         env:
           SSC_URI: ${{ vars.SSC_URI }}
           SSC_CI_TOKEN: ${{ secrets.SSC_CI_TOKEN }}
-          SSC_APP_NAME: ${{ env.APP_NAME }}
-          SSC_APPVER_NAME: ${{ steps.extract_branch.outputs.branch }}
+          SSC_APPVER_NAME: ${{ format('{0}:{1}', env.APP_NAME, steps.extract_branch.outputs.branch) }}
           MAX_CRITICAL_COUNT: 0
 
   Release-Gate:
