@@ -382,7 +382,7 @@ jobs:
         run: |
           fcli sc-dast session login --ssc-url $SSC_URI --ssc-ci-token $SSC_CI_TOKEN github-actions
           fcli sc-dast scan start --settings "${SCDAST_SETTINGS_ID}" --store curScan --session github-actions "${SCAN_NAME}"
-          fcli sc-dast scan wait-for ::curScan:: -i 5s -t --session github-actions
+          fcli sc-dast scan wait-for ::curScan:: -i 5s -t 4h --session github-actions
           fcli sc-dast session logout github-actions
         env:
           SSC_URI: ${{ vars.SSC_URI }}
@@ -454,8 +454,7 @@ jobs:
         run: |
           fcli ssc session login --url $SSC_URI --ci-token $SSC_CI_TOKEN github-actions
           fcli ssc appversion-vuln count --appversion="${SSC_APPVER_NAME}" --session github-actions
-          if [ $(fcli ssc appversion-vuln count --appversion=":${SSC_APPVER_NAME}" -q 'cleanName matches "Critical"' -o expr="{totalCount}" --session github-actions) -gt "${MAX_CRITICAL_COUNT}" ]; then echo "Security policy: failed"; else echo "Security policy: passed"; fi
-          fcli ssc session logout github-actions
+          if [ $(fcli ssc appversion-vuln count --appversion="${SSC_APPVER_NAME}" -q 'cleanName matches "Critical"' -o expr="{totalCount}" --session github-actions) -gt "${MAX_CRITICAL_COUNT}" ]; then echo "Security policy: failed"; else echo "Security policy: passed"; fi
         id: verify_security_policy
         env:
           SSC_URI: ${{ vars.SSC_URI }}
