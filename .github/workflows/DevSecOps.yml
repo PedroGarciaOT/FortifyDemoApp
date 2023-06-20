@@ -176,9 +176,6 @@ jobs:
     needs: [ Verify-SSC-Environment ]
 
     steps:
-      #- env:
-      #    BRANCH_NAME: ${{needs.Verify-SSC-Environment.outputs.branch}}
-      #    SSC_APPVER_ID: ${{needs.Verify-SSC-Environment.outputs.appverid}}
       - uses: actions/checkout@v3.3.0
       - uses: actions/setup-java@v3
         with:
@@ -219,7 +216,7 @@ jobs:
           SSC_CI_TOKEN: ${{ secrets.SSC_CI_TOKEN }}
           SSC_APPVER_ID: ${{needs.Verify-SSC-Environment.outputs.appverid}}
           BRANCH_NAME: ${{needs.Verify-SSC-Environment.outputs.branch}}
-          DEBRICKED_REPO: "fortify-presales/FortifyDemoApp"
+          DEBRICKED_REPO: ${{ vars.DEBRICKED_REPO }}
           DEBRICKED_TOKEN: ${{ secrets.DEBRICKED_TOKEN }}
 
   Quality-Gate:
