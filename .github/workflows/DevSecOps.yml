@@ -3,10 +3,10 @@
 name: DevSecOps with Fortify
 
 on:
-  # Triggers the workflow on push or pull request events but only for the main branch
+  # Triggers the workflow on push or pull request events
   push:
     paths-ignore:
-      - .github/workflows/**
+      - '.github/workflows/**'
       - 'bin/**'
       - 'data/**'
       - 'etc/**'
@@ -23,7 +23,7 @@ on:
   workflow_dispatch:
     inputs:
       runScanCentralSASTScan:
-        description: 'Carry out SAST scan using Fortify ScanCentral'
+        description: 'Carry out SAST scan using Fortify ScanCentral SAST'
         required: false
         default: 'true'
       runDebrickedScan:
@@ -31,7 +31,7 @@ on:
         required: false
         default: 'true'
       runScanCentralDASTScan:
-        description: 'Carry out DAST scan using Fortify ScanCentral'
+        description: 'Carry out DAST scan using Fortify ScanCentral DAST'
         required: false
         default: 'false'
 
@@ -98,10 +98,10 @@ jobs:
         uses: SpicyPizza/create-envfile@v2.0
         with:
           envkey_DEBUG: false
-          envKey_AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          envKey_AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
-          envKey_AZURE_APP_NAME: ${{ vars.AZURE_APP_NAME }}
-          envKey_AZURE_REGION: ${{ vars.AZURE_REGION }}
+          envkey_AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          envkey_AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+          envkey_AZURE_APP_NAME: ${{ vars.AZURE_APP_NAME }}
+          envkey_AZURE_REGION: ${{ vars.AZURE_REGION }}
 
       #- uses: azure/login@v1
       #  with:
@@ -110,10 +110,13 @@ jobs:
       #- run: |
       #    az webapp list --query "[?state=='Running']"
 
-    # TBD
+       # TBD
 
   Verify-SSC-Environment:
     runs-on: ubuntu-latest
+    outputs:
+      branch: ${{ steps.extract_branch.outputs.branch }}
+      appverid: ${{ steps.create_ssc_appversion.outputs.appverid }}
 
     steps:
       - uses: actions/checkout@v3.3.0
@@ -134,6 +137,7 @@ jobs:
           else
             BRANCH_NAME="$(echo ${GITHUB_REF#refs/heads/})"
           fi
+          echo "branch=${BRANCH_NAME}"
           echo "branch=${BRANCH_NAME}" >> $GITHUB_OUTPUT
         env:
           SOURCE_BRANCH: ${{ github.head_ref }}
@@ -157,8 +161,8 @@ jobs:
           fcli ssc app list --session github-actions
           fcli ssc appversion create "${SSC_APPVER_NAME}" --description "Created automatically from GitHub" --issue-template "${SSC_ISSUE_TEMPLATE}" --auto-required-attrs --skip-if-exists --store curRel --session github-actions
           APPVERID=$(fcli state var contents curRel -o expr="{id}")
-          echo "SSC_APPVER_ID=${APPVERID}"
-          echo "SSC_APPVER_ID=${APPVERID}" >> $GITHUB_OUTPUT
+          echo "appverid=${APPVERID}"
+          echo "appverid=${APPVERID}" >> $GITHUB_OUTPUT
           fcli ssc session logout --no-revoke-token github-actions
         id: create_ssc_appversion
         env:
@@ -173,6 +177,9 @@ jobs:
     needs: [ Verify-SSC-Environment ]
 
     steps:
+      - env:
+          BRANCH_NAME: ${{needs.Verify-SSC-Environment.outputs.branch}}
+          SSC_APPVER_ID: ${{needs.Verify-SSC-Environment.outputs.appverid}}
       - uses: actions/checkout@v3.3.0
       - uses: actions/setup-java@v3
         with:
@@ -187,9 +194,6 @@ jobs:
         run: |
           ./gradlew clean build copyDependencies -x test
           ./gradlew dependencies > .debricked-gradle-dependencies.
-          ls build
-          ls build/classes/java
-          ls build/dependencies
       - uses: debricked/vulnerable-functionality/java@v0
         with:
           path-to-compiled-files: 'build/classes/java'
@@ -197,6 +201,11 @@ jobs:
       - uses: debricked/actions/scan@v1
         env:
           DEBRICKED_TOKEN: ${{ secrets.DEBRICKED_TOKEN }}
+      - name: Export Debricked to SSC
+        shell: bash
+        run: |
+          echo ${env.BRANCH_NAME}
+          echo "APP_VER_ID=${SSC_APPVERID}"
 
   Quality-Gate:
     runs-on: ubuntu-latest
