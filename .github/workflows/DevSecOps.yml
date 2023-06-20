@@ -95,13 +95,14 @@ jobs:
       - uses: SpicyPizza/create-envfile@v2.0
         with:
           envkey_DEBUG: false
+      - name: Create dependency files
         shell: bash
-          run: |
-            ./gradlew clean build copyDependencies -x test
-            ./gradlew dependencies > .debricked-gradle-dependencies.
-            ls build
-            ls build/classes/java
-            ls build/dependencies
+        run: |
+          ./gradlew clean build copyDependencies -x test
+          ./gradlew dependencies > .debricked-gradle-dependencies.
+          ls build
+          ls build/classes/java
+          ls build/dependencies
       - uses: debricked/vulnerable-functionality/java@v0
         with:
           path-to-compiled-files: 'build/classes/java'
