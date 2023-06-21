@@ -73,8 +73,8 @@ public class DefaultController {
                 products = productRepository.findByName(keywords);
                 model.addAttribute("haveKeywords", true);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception ex) {
+            log.error("DefaultController::showProductsPage: error retrieving products: {}", ex.getLocalizedMessage());
         }
 
         model.addAttribute("products", products);
@@ -105,11 +105,11 @@ public class DefaultController {
 
         Resource resource;
 
-        File dataDir = null;
+        File dataDir;
         try {
             dataDir = ResourceUtils.getFile("classpath:data");
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
+        } catch (FileNotFoundException ex) {
+            log.error("DefaultController::downloadFile: error retrieving file: {}", ex.getLocalizedMessage());
             return ResponseEntity.notFound().build();
         }
 
@@ -118,8 +118,8 @@ public class DefaultController {
         Path path = Paths.get(fileBasePath + fileName);
         try {
             resource = new UrlResource(path.toUri());
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
+        } catch (MalformedURLException ex) {
+            log.error("DefaultController::downloadFile: error retrieving file: {}", ex.getLocalizedMessage());
             return ResponseEntity.notFound().build();
         }
 
@@ -147,7 +147,7 @@ public class DefaultController {
         try {
             fileSystemService.writeUser(newUser.getId(), newUser.getFirstName() + " " + newUser.getLastName(), newUser.getEmail());
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("DefaultController::subscribeUser: error writing file: {}", e.getLocalizedMessage());
         }
         return ResponseEntity.status(HttpStatus.OK).build();
     }

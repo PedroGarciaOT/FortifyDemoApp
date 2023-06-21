@@ -471,10 +471,11 @@ jobs:
         shell: bash
         run: |
           fcli ssc session login --url $SSC_URI --ci-token $SSC_CI_TOKEN github-actions
-          fcli ssc appversion-vuln count --appversion $SSC_APPVER_ID --session github-actions
+          echo "Fortify Vulnerability Count" >> $GITHUB_STEP_SUMMARY
+          fcli ssc appversion-vuln count --appversion $SSC_APPVER_ID --session github-actions >> $GITHUB_STEP_SUMMARY
           if [ $(fcli ssc appversion-vuln count --appversion $SSC_APPVER_ID -q 'cleanName matches "Critical"' -o expr="{totalCount}" --session github-actions) -gt "${MAX_CRITICAL_COUNT}" ]; then \
             echo "Security policy: failed"; \ 
-          else 
+          else \
             echo "Security policy: passed"; \
           fi
           fcli ssc session logout --no-revoke-token github-actions
