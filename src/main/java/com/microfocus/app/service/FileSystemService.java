@@ -27,7 +27,7 @@ public class FileSystemService {
         File dataFile = new File(getFilePath(USER_INFO_FILE));
         if (dataFile.createNewFile()) {
             if (log.isDebugEnabled()) {
-                log.debug("Created: " + getFilePath(USER_INFO_FILE));
+                log.debug("Created new file: {}", dataFile.toString());
             }
         }
 

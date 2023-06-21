@@ -146,7 +146,6 @@ public class DefaultController {
         log.debug("DefaultController:subscribeUser");
         try {
             fileSystemService.writeUser(newUser.getId(), newUser.getFirstName() + " " + newUser.getLastName(), newUser.getEmail());
-            log.debug("Subscribed a user to the newsletter: " + newUser);
         } catch (IOException e) {
             e.printStackTrace();
         }

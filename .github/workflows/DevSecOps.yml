@@ -284,6 +284,13 @@ jobs:
           echo "::debug::PATH=$HOME/fcli/bin"
           echo "$HOME/fcli/bin" >> $GITHUB_PATH
 
+      # Copy IaC files so they are included in the ScanCentral Package
+      - name: Copy IaC files
+        shell: bash
+        run: |
+          cp -f azuredeploy.* ./src/main/resources
+          cp Dockerfile ./src/main/resources
+
       # Prepare source+dependencies for upload using "scancentral package"
       - name: Download and run Fortify ScanCentral Client
         uses: fortify/gha-setup-scancentral-client@v2.3.0
@@ -431,24 +438,24 @@ jobs:
           cache: 'gradle'
 
       # Setup Gradle
-      - name: Setup Gradle
-        uses: gradle/gradle-build-action@v2
+      #- name: Setup Gradle
+      #  uses: gradle/gradle-build-action@v2
 
       # Get the branch name or pr number
-      - name: Extract branch name
-        shell: bash
-        run: |
-          if [[ $GITHUB_REF == *"refs/pull/"* ]]; then
-            BRANCH_NAME="$(echo ${GITHUB_REF#refs/pull/})"
-            PR_NUMBER="$(echo ${BRANCH_NAME%/merge})"
-            BRANCH_NAME="[PR]${SOURCE_BRANCH}#${PR_NUMBER}"
-          else
-            BRANCH_NAME="$(echo ${GITHUB_REF#refs/heads/})"
-          fi
-          echo "branch=${BRANCH_NAME}" >> $GITHUB_OUTPUT
-        env:
-          SOURCE_BRANCH: ${{ github.head_ref }}
-        id: extract_branch
+      #- name: Extract branch name
+      #  shell: bash
+      #  run: |
+      #    if [[ $GITHUB_REF == *"refs/pull/"* ]]; then
+      #      BRANCH_NAME="$(echo ${GITHUB_REF#refs/pull/})"
+      #      PR_NUMBER="$(echo ${BRANCH_NAME%/merge})"
+      #      BRANCH_NAME="[PR]${SOURCE_BRANCH}#${PR_NUMBER}"
+      #    else
+      #      BRANCH_NAME="$(echo ${GITHUB_REF#refs/heads/})"
+      #    fi
+      #    echo "branch=${BRANCH_NAME}" >> $GITHUB_OUTPUT
+      #  env:
+      #    SOURCE_BRANCH: ${{ github.head_ref }}
+      #  id: extract_branch
 
       # Install Fortify Command Line (fcli) tool
       - name: Install fcli
@@ -459,31 +466,26 @@ jobs:
           echo "::debug::PATH=$HOME/fcli/bin"
           echo "$HOME/fcli/bin" >> $GITHUB_PATH
 
-      # Login to Fortify ScanCentral fcli session
-      - name: Login fcli
-        shell: bash
-        run: |
-          fcli --version
-          fcli sc-sast session login --ssc-url $SSC_URI --ssc-ci-token $SSC_CI_TOKEN --client-auth-token $CLIENT_AUTH_TOKEN github-actions
-        env:
-          SSC_URI: ${{ vars.SSC_URI }}
-          SSC_CI_TOKEN: ${{ secrets.SSC_CI_TOKEN }}
-          CLIENT_AUTH_TOKEN: ${{ secrets.CLIENT_AUTH_TOKEN }}
-
-      # Run script to check the Security Policy of the Fortify ScanCentral Release to determine success/failure
+      # Run script to check the Security Policy of the Fortify ScanCentral Application Version to determine success/failure
       - name: Verify Security Policy
         shell: bash
         run: |
           fcli ssc session login --url $SSC_URI --ci-token $SSC_CI_TOKEN github-actions
-          fcli ssc appversion-vuln count --appversion="${SSC_APPVER_NAME}" --session github-actions
-          if [ $(fcli ssc appversion-vuln count --appversion="${SSC_APPVER_NAME}" -q 'cleanName matches "Critical"' -o expr="{totalCount}" --session github-actions) -gt "${MAX_CRITICAL_COUNT}" ]; then echo "Security policy: failed"; else echo "Security policy: passed"; fi
+          fcli ssc appversion-vuln count --appversion $SSC_APPVER_ID --session github-actions
+          if [ $(fcli ssc appversion-vuln count --appversion $SSC_APPVER_ID -q 'cleanName matches "Critical"' -o expr="{totalCount}" --session github-actions) -gt "${MAX_CRITICAL_COUNT}" ]; then \
+            echo "Security policy: failed"; \ 
+          else 
+            echo "Security policy: passed"; \
+          fi
           fcli ssc session logout --no-revoke-token github-actions
         id: verify_security_policy
         env:
           SSC_URI: ${{ vars.SSC_URI }}
           SSC_CI_TOKEN: ${{ secrets.SSC_CI_TOKEN }}
-          SSC_APPVER_NAME: ${{ format('{0}:{1}', env.APP_NAME, steps.extract_branch.outputs.branch) }}
-          MAX_CRITICAL_COUNT: 0
+          SSC_APPVER_ID: ${{needs.Verify-SSC-Environment.outputs.appverid}}
+          #SSC_APPVER_NAME: ${{ format('{0}:{1}', env.APP_NAME, steps.extract_branch.outputs.branch) }}
+          MAX_CRITICAL_COUNT: ${{ vars.SSC_MAX_CRITICAL_COUNT }}
+          MAX_HIGH_COUNT: ${{ vars.SSC_MAX_HIGH_COUNT }}
 
   Release-Gate:
     runs-on: ubuntu-latest
