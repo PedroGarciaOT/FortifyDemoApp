@@ -16,12 +16,13 @@ repositories {
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     def springVersion = "2.1.8.RELEASE"
+    def log4jVersion = "2.4.13" // this is a deliberately insecure version
     implementation "org.springframework.boot:spring-boot-starter-actuator:$springVersion"
     implementation "org.springframework.boot:spring-boot-starter-web:$springVersion"
     implementation "org.springframework.boot:spring-boot-starter-security:$springVersion"
     implementation "org.springframework.security:spring-security-taglibs:5.2.8.RELEASE"
     implementation "org.springframework.boot:spring-boot-starter-data-jdbc:$springVersion"
-    implementation "org.springframework.boot:spring-boot-starter-log4j2:$springVersion"
+    implementation "org.springframework.boot:spring-boot-starter-log4j2:$log4jVersion"
     implementation "org.springframework.boot:spring-boot-starter-jdbc:$springVersion"
     modules {
         module("org.springframework.boot:spring-boot-starter-logging") {
@@ -33,6 +34,7 @@ dependencies {
     implementation "org.apache.tomcat.embed:tomcat-embed-jasper"
     implementation 'javax.servlet:jstl:1.2'
     implementation 'com.h2database:h2:1.4.197'
+    implementation 'org.webjars:lodash:4.17.4'
     testImplementation "org.springframework.boot:spring-boot-starter-test:$springVersion"
     testImplementation 'junit:junit:4.12'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.8.1'
@@ -46,7 +48,9 @@ configurations.all {
 }
 
 def props = new Properties()
-file(".env").withInputStream { props.load(it) }
+if (file(".env").isFile()) {
+    file(".env").withInputStream { props.load(it) }
+}
 project.archivesBaseName = 'FortifyDemoApp'
 group = 'com.microfocus.app'
 version = ''
@@ -94,7 +98,7 @@ test {
 }
 
 bootRun {
-    //systemProperty "spring.profiles.active", "dev"
+    systemProperty "spring.profiles.active", "dev"
     //jvmArgs = [ "-javaagent:C:\\Tools\\Fortify_WebInspect_Runtime_Agent_Java_21.3.1\\lib\\FortifyAgent.jar" ]
 }
 
